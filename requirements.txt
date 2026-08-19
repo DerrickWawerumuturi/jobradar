@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+psycopg[binary]
+pgvector
+anthropic
+httpx
+python-dotenv
+pydantic
+
+pandas
+pdf-inspector
+xai-sdk
+skillner
+spacy
+sentence-transformers

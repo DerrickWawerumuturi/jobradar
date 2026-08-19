@@ -1,0 +1,50 @@
+{
+    "market": {
+        "jobs_analyzed": 18,
+
+        "top_skills": [
+            {
+                "skill": "python",
+                "job_count": 10,
+                "frequency": 0.556
+            },
+            {
+                "skill": "react",
+                "job_count": 5,
+                "frequency": 0.278
+            }
+        ],
+
+        "user_skill_presence": [
+            {
+                "skill": "python",
+                "job_count": 10,
+                "frequency": 0.556
+            },
+            "..."
+        ],
+
+        "skill_gaps": [
+            {
+                "skill": "docker",
+                "job_count": 8,
+                "frequency": 0.444
+            },
+            {
+                "skill": "aws",
+                "job_count": 7,
+                "frequency": 0.389
+            }
+        ],
+
+        "skill_coverage": {
+            "covered": 3,
+            "total": 20,
+            "coverage": 0.15
+        }
+    },
+
+    "jobs": {
+        "ranked": ["..."]
+    }
+}
