@@ -3,3 +3,10 @@ __pycache__/
 .env
 *.pyc
 .DS_Store
+
+# spaCy model, ~424 MiB with a single 392 MiB file in it — over GitHub's 100 MB
+# per-file hard limit. Installed from the wheel instead; see CLAUDE.md.
+en_core_web_lg/
+
+# IDE state. dataSources.xml also carries the Neon endpoint hostname.
+.idea/

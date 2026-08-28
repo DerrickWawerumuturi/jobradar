@@ -1,11 +1,14 @@
 fastapi
 uvicorn[standard]
 psycopg[binary]
+psycopg-pool
+groq
 pgvector
 anthropic
 httpx
 python-dotenv
 pydantic
+pycountry
 
 pandas
 pdf-inspector
@@ -13,3 +16,5 @@ xai-sdk
 skillner
 spacy
 sentence-transformers
+python-multipart
+ipython

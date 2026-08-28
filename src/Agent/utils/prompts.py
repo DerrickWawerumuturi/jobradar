@@ -15,6 +15,8 @@ USER_PROMPT = """
                   "job_requirements: str | None = None,
                   "education": string | null,
                   "location": string | null,
+                  "country_code": string | null,
+                  "city": string | null,
                   "remote": boolean | null,
                   "employment_type": string | null,
                   "salary_min": integer | null,
@@ -38,7 +40,11 @@ USER_PROMPT = """
                 - If one or two more roles appears, pick the first one, add the rest to secondary_roles
                 - For experience level, classify it under one of these: Entry Level, Senior Level, Mid Level, Internship, Management
                 - For job_requirements, classify it under one of these: under_3_years_experience, more_than_3_years_experience, no_experience, no_degree
-                - category: classify it under one of these: IT, Software Engineering, Computer and IT, Data Science
+                - location: the place as written, e.g. "Nairobi, Kenya". Null if absent.
+                - country_code: the ISO 3166-1 alpha-2 code for that place, lowercase, e.g. "ke" for Nairobi, "gb" for London, "us" for Austin. Infer it from a city, an address, a phone country code or a nationality if the country is not named outright. Null only when there is genuinely no locational evidence.
+                - city: the city alone, e.g. "Nairobi". Null if only a country is known.
+                - If the location says only "remote" or "anywhere", set remote true and leave country_code null.
+                - category: classify it under exactly one of these: Software Engineering, Data and Analytics, Computer and IT, Science and Engineering, Design and UX, Product Management. Null if none fit.
                 """
 
 SYSTEM = """

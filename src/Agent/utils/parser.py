@@ -1,4 +1,4 @@
-from src.Agent.utils.skill_extractor import SkillExtractor
+from src.Agent.utils.extraction_pool import extraction_pool
 from src.Agent.utils.types import ParsedQuery, Job, ProcessedJob
 
 
@@ -19,27 +19,35 @@ def parse_generated_query(generated_input):
     try:
         result = ParsedQuery.model_validate_json(generated_input)
         return result
-    except Exception:
-        raise ValueError("Error parsing the generated input")
+    except Exception as err:
+        raise ValueError(f"Error parsing the generated input: {err}") from err
 
 
-def parse_retrieved_jobs(raw_jobs: list[Job], skill_extractor: SkillExtractor) -> list[ProcessedJob]:
-    cleaned_jobs = []
+def parse_retrieved_jobs(raw_jobs: list[Job]) -> list[ProcessedJob]:
+    """
+    Extract skills for every posting, in parallel.
+
+    Postings whose extraction fails are dropped rather than kept with an empty
+    skill list. Keeping them counted a job in jobs_analyzed that contributed no
+    skills, which deflated every frequency in the market analysis.
+    """
     try:
-        for job in raw_jobs:
-            if not job.description:
-                continue
+        with_description = [job for job in raw_jobs if job.description]
+        extracted = extraction_pool.extract_many(
+            [job.description for job in with_description]
+        )
 
-            try:
-                skills = skill_extractor.extract(job.description)
-                cleaned_jobs.append(
-                    ProcessedJob(
-                        job=job,
-                        skills=list(skills)
-                    )
-                )
-            except Exception as e:
-                print(f"Failed to extract skills from {job.title}: {e}")
+        cleaned_jobs = []
+        failed = 0
+
+        for job, skills in zip(with_description, extracted):
+            if skills is None:
+                failed += 1
+                continue
+            cleaned_jobs.append(ProcessedJob(job=job, skills=skills))
+
+        if failed:
+            print(f"Dropped {failed} of {len(with_description)} postings: skill extraction failed")
 
         return cleaned_jobs
 

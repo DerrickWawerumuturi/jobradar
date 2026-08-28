@@ -16,8 +16,12 @@ class QueryInterpreter:
         try:
             response = self.llm.generate_response(user_input)
             result = parse_generated_query(response)
-        except Exception:
-            raise ValueError("Error in the interpreter")
+        except Exception as err:
+            # Chained, because it was not. A Groq `json_validate_failed` reached
+            # the caller as a bare "Error in the interpreter" with the real cause
+            # discarded, and was only diagnosable because generate_response
+            # happens to print the error before re-raising it.
+            raise ValueError(f"Error in the interpreter: {err}") from err
         return result
 
 

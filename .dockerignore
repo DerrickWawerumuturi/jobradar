@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+.DS_Store
+.git
+.gitignore
+.env
+.env.*
+docs
+evals
+# No longer COPYied — pip installs it. Keeps 424 MiB out of the build context.
+en_core_web_lg
