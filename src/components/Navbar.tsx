@@ -97,7 +97,7 @@ const Navbar = () => {
                                 <DropdownMenuItem
                                     key={link.href}
                                     render={(props) => (
-                                        <Link {...props} href={link.href} className={"hover:cursor-pointer"}>
+                                        <Link {...props} href={link.href} className={cn(props.className, "cursor-pointer")}>
                                             {link.label}
                                         </Link>
                                     )}
