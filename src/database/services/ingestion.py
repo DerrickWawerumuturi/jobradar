@@ -2,6 +2,7 @@ import os
 import time
 from datetime import datetime
 
+from src.database.repositories import user_repository
 from src.database.fingerprint import job_fingerprint, payload_hash
 from src.database.models.job import JobIdentity, JobRecord, ObservationRecord
 from src.database.repositories import (
@@ -232,3 +233,22 @@ class JobIngestionService:
 
         except Exception as err:
             self._record_failure("store skills", err)
+
+class UserIngestionService:
+    def store(self, payload, cv_dict):
+        with connection() as conn:
+            user_id = user_repository.upsert_user(
+                conn,
+                payload["sub"],
+                payload.get("email"),
+                payload.get("name"),
+                payload.get("image")
+            )
+
+            user_repository.save_cv(conn, user_id, cv_dict)
+
+    def fetch(self, payload) -> dict | None:
+        with connection() as conn:
+            return user_repository.get_cv(conn, payload["sub"])
+
+user_ingestion = UserIngestionService()

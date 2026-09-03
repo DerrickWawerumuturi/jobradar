@@ -1,3 +1,7 @@
+from typing import Literal
+from unittest import result
+
+from src.Agent.utils.types import CVQuery
 from src.Agent.utils.extraction_pool import extraction_pool
 from src.Agent.utils.types import ParsedQuery, Job, ProcessedJob
 
@@ -14,13 +18,18 @@ def parse_query(user_input) -> list[str]:
 
 # user_input = parse_query(USER_INPUT_PDF)
 
-
-def parse_generated_query(generated_input):
+def parse_generated_query(generated_input, type: Literal["user", "cv"]):
     try:
-        result = ParsedQuery.model_validate_json(generated_input)
-        return result
+        if type == "user":
+            parsed_query = ParsedQuery.model_validate_json(generated_input)
+        elif type == "cv":
+            parsed_query = CVQuery.model_validate_json(generated_input)
+
+        return parsed_query
     except Exception as err:
         raise ValueError(f"Error parsing the generated input: {err}") from err
+
+
 
 
 def parse_retrieved_jobs(raw_jobs: list[Job]) -> list[ProcessedJob]:

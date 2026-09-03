@@ -1,12 +1,22 @@
-from fastapi import FastAPI, File, UploadFile
+from typing import Annotated
+
+from fastapi import FastAPI, File, HTTPException, UploadFile,Depends
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from pdf_inspector import pdf_inspector
 import asyncio
 import tempfile
 import os
-from src.Agent.Framework.JobRadarAgent import job_radar_agent
-from fastapi.middleware.cors import CORSMiddleware
+import sys
 
+from src.database.services.ingestion import user_ingestion
+from src.cv.current_user import current_user
+from src.Agent.utils.types import CVQuery
+from src.cv.dashboard import dashboard
+from src.Agent.Framework.JobRadarAgent import job_radar_agent
+
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 app = FastAPI()
 
 # One analysis at a time. The work is moved off the event loop so the server
@@ -54,11 +64,8 @@ async def analyze(file: UploadFile = File(...)):
     contents = await file.read()
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-
         temp.write(contents)
-
         temp_path = temp.name
-
     try:
         # Both of these are synchronous and slow — PDF parsing, then several
         # minutes of scraping, embedding and scoring. Running them directly in
@@ -67,10 +74,51 @@ async def analyze(file: UploadFile = File(...)):
         async with analysis_lock:
             cv_text = await run_in_threadpool(pdf_inspector.extract_text, temp_path)
 
+
             result = await run_in_threadpool(job_radar_agent.run, cv_text)
 
         return result
 
+    except Exception as err:
+        # HTTPException goes through the middleware stack, so the error
+        # response keeps its CORS headers instead of surfacing in the
+        # browser as an opaque "Failed to fetch".
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {err}") from err
     finally:
 
         os.remove(temp_path)
+@app.post("/cv/parse")
+async def parse_cv(file: UploadFile = File(...)):
+    contents = await file.read()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+        temp.write(contents)
+        temp_path = temp.name
+
+    try:
+        cv_text = await run_in_threadpool(pdf_inspector.extract_text, temp_path)
+        result = await run_in_threadpool(dashboard.parse, cv_text)
+
+        return result
+
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=f"CV parsing failed: {err}") from err
+    finally:
+        os.remove(temp_path)
+
+@app.put("/cv")
+async def store_cv(cv: CVQuery, user = Depends(current_user)):
+    try:
+        await run_in_threadpool(user_ingestion.store, user, cv.model_dump())
+    except Exception as err:
+        raise  HTTPException(status_code=500, detail=f"Error storing your cv: {err}") from err
+
+@app.get("/cv")
+async def get_cv(user = Depends(current_user)):
+    try:
+        data = await run_in_threadpool(user_ingestion.fetch, user)
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=f"Error fetching your cv: {err}") from err
+    
+    if data is None:
+        raise HTTPException(status_code=404, detail="No Cv saved yet")
+    return data

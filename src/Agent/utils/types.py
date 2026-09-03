@@ -117,3 +117,29 @@ class SearchOutcome:
     jobs: list = field(default_factory=list)
     coverage: dict = field(default_factory=dict)
 
+class Education(BaseModel):
+    school_name: str | None
+    course_title: str | None
+
+
+class Experience(BaseModel):
+    company: str | None
+    role: str | None
+    start_date: str | None
+    end_date: str | None
+    description: str | None
+
+
+class CVQuery(BaseModel):
+    name: str | None
+    title: str | None
+    location: str | None
+    phone_number: str | None
+    email: str | None
+    portfolio: str | None
+    linkedIn: str | None
+    professional_summary: str | None
+    skills:list[str] = Field(default_factory=list)
+    experience: list[Experience] = Field(default_factory=list)
+    experience_level: str | None
+    education: list[Education]
