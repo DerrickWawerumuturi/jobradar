@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 import {Toaster} from "sonner";
@@ -25,6 +25,11 @@ const caveat = Caveat({
     variable: "--font-caveat",
     display: "swap"
 })
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jobradar-frontend-pearl.vercel.app"),

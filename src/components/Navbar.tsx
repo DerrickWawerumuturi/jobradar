@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from "next/link";
+import {MenuIcon} from "lucide-react";
 import {usePathname} from "next/navigation";
 import {signOut, useSession} from "next-auth/react";
 import {useAnalysis} from "@/lib/analysis-store";
@@ -49,7 +50,7 @@ const Navbar = () => {
 
             <div className={"flex items-center gap-5"}>
                 {links.length > 0 && (
-                    <nav className={"relative flex items-center gap-4 sm:gap-5"}>
+                    <nav className={"relative hidden items-center gap-5 sm:flex"}>
                         {links.map((link) => (
                             <Link
                                 key={link.href}
@@ -84,6 +85,28 @@ const Navbar = () => {
                     </nav>
                 )}
 
+                {links.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger render={(props) => (
+                            <button {...props} aria-label={"Menu"} className={"flex text-muted-foreground hover:text-foreground sm:hidden"}>
+                                <MenuIcon className={"size-5"} />
+                            </button>
+                        )} />
+                        <DropdownMenuContent align={"end"} className={"w-44"}>
+                            {links.map((link) => (
+                                <DropdownMenuItem
+                                    key={link.href}
+                                    render={(props) => (
+                                        <Link {...props} href={link.href} className={"hover:cursor-pointer"}>
+                                            {link.label}
+                                        </Link>
+                                    )}
+                                />
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+
                 {session?.user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger render={(props) => (
@@ -108,7 +131,7 @@ const Navbar = () => {
                     ): (
                     <Link
                         href={"/sign-in"}
-                        className={"flex rounded-md border border-border " +
+                        className={"flex shrink-0 whitespace-nowrap rounded-md border border-border " +
                             "px-3 py-1.5 font-mono font-bold text-xs uppercase tracking-[0.12em] " +
                             "text-foreground transition-colors hover:border-primary/40"}
                     >

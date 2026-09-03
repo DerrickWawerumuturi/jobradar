@@ -333,6 +333,14 @@
     }
   }
 
+  /* iOS zooms the page when focusing a control with font-size < 16px and
+     never zooms back. Form controls stay >= 16px on small screens. */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+
   /* Scrollable strips that don't show a scrollbar. */
   .no-scrollbar {
     scrollbar-width: none;

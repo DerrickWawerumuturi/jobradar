@@ -77,14 +77,21 @@ const About = () => {
     const listRef = useRef<HTMLOListElement>(null);
 
     // Mobile wheel: as the strip scrolls, cards drop and tilt away from the
-    // center like points on a rim. No-op when the strip isn't scrollable.
+    // center like points on a rim. Sampled every frame rather than on scroll
+    // events — iOS fires those too sparsely during momentum to look smooth.
     useEffect(() => {
         const el = listRef.current;
         if (!el) return;
         let raf = 0;
+        let lastLeft = -1;
+        let lastWidth = -1;
 
-        const update = () => {
-            raf = 0;
+        const tick = () => {
+            raf = requestAnimationFrame(tick);
+            if (el.scrollLeft === lastLeft && el.clientWidth === lastWidth) return;
+            lastLeft = el.scrollLeft;
+            lastWidth = el.clientWidth;
+
             const scrollable = el.scrollWidth > el.clientWidth + 8;
             const mid = el.scrollLeft + el.clientWidth / 2;
             for (const child of el.children) {
@@ -93,25 +100,20 @@ const About = () => {
                 if (!scrollable) {
                     li.style.transform = "";
                     li.style.opacity = "";
+                    li.style.willChange = "";
                     continue;
                 }
                 const delta = (li.offsetLeft + li.offsetWidth / 2 - mid) / el.clientWidth;
                 const abs = Math.abs(delta);
+                li.style.willChange = "transform, opacity";
                 li.style.transform =
                     `translateY(${abs * 46}px) rotate(${delta * 16}deg) scale(${1 - Math.min(abs * 0.15, 0.2)})`;
                 li.style.opacity = `${1 - Math.min(abs * 0.5, 0.45)}`;
             }
         };
 
-        const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
-        update();
-        el.addEventListener("scroll", schedule, {passive: true});
-        window.addEventListener("resize", schedule);
-        return () => {
-            el.removeEventListener("scroll", schedule);
-            window.removeEventListener("resize", schedule);
-            if (raf) cancelAnimationFrame(raf);
-        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
     }, []);
 
     return (
