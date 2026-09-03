@@ -1,0 +1,356 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-space: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-hand: var(--font-caveat), "Comic Sans MS", cursive;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-chart-ramp-5: var(--chart-ramp-5);
+  --color-chart-ramp-4: var(--chart-ramp-4);
+  --color-chart-ramp-3: var(--chart-ramp-3);
+  --color-chart-ramp-2: var(--chart-ramp-2);
+  --color-chart-ramp-1: var(--chart-ramp-1);
+  --color-chart-hollow: var(--chart-hollow-fill);
+  --color-accent-lime: var(--accent-lime);
+  --color-accent-lime-ink: var(--accent-lime-ink);
+  --color-panel-green: var(--panel-green);
+  --color-panel-green-border: var(--panel-green-border);
+  --color-panel-green-ink: var(--panel-green-ink);
+  --color-panel-green-ink-muted: var(--panel-green-ink-muted);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+}
+
+/*
+ * Light palette — kept coherent with the dark editorial system (same single
+ * orange-red accent), but the app ships locked to `.dark`.
+ */
+:root {
+  --background: oklch(0.975 0.003 80);
+  --foreground: oklch(0.17 0.005 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.005 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.005 260);
+  --primary: oklch(0.60 0.21 35);
+  --primary-foreground: oklch(0.98 0.008 50);
+  --secondary: oklch(0.945 0.004 80);
+  --secondary-foreground: oklch(0.22 0.005 260);
+  --muted: oklch(0.945 0.004 80);
+  --muted-foreground: oklch(0.48 0.012 260);
+  --accent: oklch(0.945 0.004 80);
+  --accent-foreground: oklch(0.22 0.005 260);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.17 0.005 260 / 12%);
+  --input: oklch(0.17 0.005 260 / 15%);
+  --ring: oklch(0.60 0.21 35);
+  --chart-1: oklch(0.80 0.10 45);
+  --chart-2: oklch(0.70 0.17 40);
+  --chart-3: oklch(0.60 0.21 35);
+  --chart-4: oklch(0.50 0.16 32);
+  --chart-5: oklch(0.40 0.12 30);
+  /*
+   * Warm sequential data ramp (yellow → amber → orange → red) + the green
+   * editorial chart panel. The panel is a deliberate single-look surface —
+   * identical in both themes — so its ink tokens travel with it.
+   */
+  --chart-ramp-1: oklch(0.87 0.16 95);
+  --chart-ramp-2: oklch(0.80 0.165 72);
+  --chart-ramp-3: oklch(0.73 0.185 52);
+  --chart-ramp-4: oklch(0.66 0.21 40);
+  --chart-ramp-5: oklch(0.63 0.23 30);
+  --chart-hollow-fill: oklch(1 0 0 / 15%);
+  --accent-lime: oklch(0.92 0.19 116);
+  --accent-lime-ink: oklch(0.28 0.07 152);
+  --panel-green: oklch(0.32 0.07 158);
+  --panel-green-border: oklch(0.95 0.05 150 / 16%);
+  --panel-green-grid: oklch(0.95 0.06 150 / 8%);
+  --panel-green-frame: oklch(0.96 0.04 140 / 45%);
+  --panel-green-ink: oklch(0.985 0.01 120);
+  --panel-green-ink-muted: oklch(0.88 0.05 148);
+  --panel-navy: oklch(0.30 0.055 265);
+  --panel-navy-border: oklch(0.93 0.03 260 / 16%);
+  --panel-navy-ink: oklch(0.985 0.005 260);
+  --panel-navy-ink-muted: oklch(0.87 0.035 255);
+  --panel-maroon: oklch(0.31 0.06 25);
+  --panel-maroon-border: oklch(0.95 0.04 40 / 16%);
+  --panel-maroon-ink: oklch(0.99 0.008 60);
+  --panel-maroon-ink-muted: oklch(0.89 0.045 45);
+  --radius: 0.5rem;
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.17 0.005 260);
+  --sidebar-primary: oklch(0.60 0.21 35);
+  --sidebar-primary-foreground: oklch(0.98 0.008 50);
+  --sidebar-accent: oklch(0.945 0.004 80);
+  --sidebar-accent-foreground: oklch(0.22 0.005 260);
+  --sidebar-border: oklch(0.17 0.005 260 / 12%);
+  --sidebar-ring: oklch(0.60 0.21 35);
+
+}
+
+/*
+ * Dark editorial data-viz palette — the shipping theme.
+ *
+ * Ground:    near-black #0b0c0e
+ * Surfaces:  card #121416 → popover #1a1c1f → muted #232528 (three raised steps)
+ * Hairline:  white @ 8%
+ * Accent:    one vivid orange-red #f5532a — data marks + primary action only
+ * Chart:     a single-hue ramp around the accent (light → dark, validated
+ *            ordinal on the card surface); chart-3 is the accent itself.
+ */
+.dark {
+  --background: oklch(0.155 0.004 260);
+  --foreground: oklch(0.955 0.004 80);
+  --card: oklch(0.19 0.005 260);
+  --card-foreground: oklch(0.955 0.004 80);
+  --popover: oklch(0.225 0.006 260);
+  --popover-foreground: oklch(0.955 0.004 80);
+  --primary: oklch(0.66 0.205 35);
+  --primary-foreground: oklch(0.16 0.015 35);
+  --secondary: oklch(0.265 0.006 260);
+  --secondary-foreground: oklch(0.955 0.004 80);
+  --muted: oklch(0.265 0.006 260);
+  --muted-foreground: oklch(0.70 0.012 260);
+  --accent: oklch(0.265 0.006 260);
+  --accent-foreground: oklch(0.955 0.004 80);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.66 0.205 35);
+  --chart-1: oklch(0.84 0.08 50);
+  --chart-2: oklch(0.76 0.145 45);
+  --chart-3: oklch(0.66 0.205 35);
+  --chart-4: oklch(0.55 0.17 32);
+  --chart-5: oklch(0.45 0.125 30);
+  /*
+   * Warm sequential data ramp — yellow (low) → red (high). Validated ≥ 3:1
+   * against both the card surface and the green panel; lightness is monotonic
+   * (0.87 → 0.63) so magnitude reads even under CVD.
+   */
+  --chart-ramp-1: oklch(0.87 0.16 95);
+  --chart-ramp-2: oklch(0.80 0.165 72);
+  --chart-ramp-3: oklch(0.73 0.185 52);
+  --chart-ramp-4: oklch(0.66 0.21 40);
+  --chart-ramp-5: oklch(0.63 0.23 30);
+  /* Faint disc behind hollow "not on your CV" marks so they never vanish. */
+  --chart-hollow-fill: oklch(1 0 0 / 15%);
+  /* The Search-Party yellow-green annotation accent (≈ #d8f34a). */
+  --accent-lime: oklch(0.92 0.19 116);
+  --accent-lime-ink: oklch(0.28 0.07 152);
+  /* Deep green editorial chart panel + its own ink/grid/frame scale. */
+  --panel-green: oklch(0.32 0.07 158);
+  --panel-green-border: oklch(0.95 0.05 150 / 16%);
+  --panel-green-grid: oklch(0.95 0.06 150 / 8%);
+  --panel-green-frame: oklch(0.96 0.04 140 / 45%);
+  --panel-green-ink: oklch(0.985 0.01 120);
+  --panel-green-ink-muted: oklch(0.88 0.05 148);
+  /* Sibling panel grounds — same recipe, different hue (ramp validated ≥ 3:1 on each). */
+  --panel-navy: oklch(0.30 0.055 265);
+  --panel-navy-border: oklch(0.93 0.03 260 / 16%);
+  --panel-navy-ink: oklch(0.985 0.005 260);
+  --panel-navy-ink-muted: oklch(0.87 0.035 255);
+  --panel-maroon: oklch(0.31 0.06 25);
+  --panel-maroon-border: oklch(0.95 0.04 40 / 16%);
+  --panel-maroon-ink: oklch(0.99 0.008 60);
+  --panel-maroon-ink-muted: oklch(0.89 0.045 45);
+  --sidebar: oklch(0.19 0.005 260);
+  --sidebar-foreground: oklch(0.955 0.004 80);
+  --sidebar-primary: oklch(0.66 0.205 35);
+  --sidebar-primary-foreground: oklch(0.16 0.015 35);
+  --sidebar-accent: oklch(0.265 0.006 260);
+  --sidebar-accent-foreground: oklch(0.955 0.004 80);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.66 0.205 35);
+
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+
+  }
+  body {
+    @apply bg-background text-foreground;
+
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+
+  }
+  html {
+    @apply font-sans;
+
+  }
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+
+  }
+  /* Blueprint grid on the dark ground — the app's full-screen graph paper. */
+  .dark body {
+    background-image:
+      linear-gradient(oklch(1 0 0 / 4%) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 4%) 1px, transparent 1px);
+    background-size: 28px 28px;
+
+  }
+
+}
+
+.market-container {
+  @apply flex flex-col gap-4 rounded-xl mt-12 mx-5 px-24 py-5
+}
+
+/*
+ * Editorial chart panels — the "Market skill landscape" treatment, reusable.
+ *
+ * A deep coloured ground that RE-SCOPES the surface tokens for everything
+ * rendered inside it: cards go translucent, hairlines/tracks become white
+ * alphas, and muted ink brightens to the panel's own ink scale. Components
+ * keep using bg-card / border-border / text-muted-foreground and adapt
+ * automatically. Data colour still comes from the warm ramp.
+ */
+@layer components {
+  .chart-panel,
+  .chart-band {
+    background: var(--panel-bg);
+    --card: oklch(1 0 0 / 3%);
+    --border: oklch(1 0 0 / 14%);
+    --muted: oklch(1 0 0 / 14%);
+    --foreground: var(--panel-ink);
+    --muted-foreground: var(--panel-ink-muted);
+    --chart-grid: oklch(1 0 0 / 7%);
+    --chart-frame: oklch(1 0 0 / 28%);
+  }
+  /* Contained: a rounded, bordered card — the graphs live in these. */
+  .chart-panel {
+    border-radius: calc(var(--radius) * 1.8);
+    border: 1px solid var(--panel-border-c);
+  }
+  /* Full-bleed: an edge-to-edge colour band with hairline top/bottom. */
+  .chart-band {
+    border-block: 1px solid var(--panel-border-c);
+  }
+  .chart-panel-green {
+    --panel-bg: var(--panel-green);
+    --panel-border-c: var(--panel-green-border);
+    --panel-ink: var(--panel-green-ink);
+    --panel-ink-muted: var(--panel-green-ink-muted);
+    --chart-grid: var(--panel-green-grid);
+    --chart-frame: var(--panel-green-frame);
+  }
+  .chart-panel-navy {
+    --panel-bg: var(--panel-navy);
+    --panel-border-c: var(--panel-navy-border);
+    --panel-ink: var(--panel-navy-ink);
+    --panel-ink-muted: var(--panel-navy-ink-muted);
+  }
+  .chart-panel-maroon {
+    --panel-bg: var(--panel-maroon);
+    --panel-border-c: var(--panel-maroon-border);
+    --panel-ink: var(--panel-maroon-ink);
+    --panel-ink-muted: var(--panel-maroon-ink-muted);
+  }
+  /* Motion — paper drifts, radar sweeps, stamps land, ink draws. */
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bob {
+    from { transform: translateY(-4px); }
+    to   { transform: translateY(5px); }
+  }
+  @keyframes radar-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes stamp-in {
+    0%   { opacity: 0; transform: scale(1.9); }
+    60%  { opacity: 0.9; transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes draw-stroke {
+    from { stroke-dashoffset: 70; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes fade-rise {
+    from { opacity: 0; transform: translateY(6px) rotate(-2deg); }
+    to   { opacity: 1; transform: translateY(0) rotate(-2deg); }
+  }
+
+  .anim-rise   { animation: rise-in 0.7s ease-out both; }
+  .anim-bob    { animation: bob 5.5s ease-in-out infinite alternate; }
+  .anim-radar  { animation: radar-spin 5s linear infinite; transform-origin: 32px 32px; }
+  .anim-stamp  { animation: stamp-in 0.45s ease-out 0.9s both; }
+  .anim-draw   { stroke-dasharray: 70; animation: draw-stroke 0.7s ease-out 0.35s both; }
+  .anim-draw-2 { stroke-dasharray: 70; animation: draw-stroke 0.4s ease-out 0.95s both; }
+  .anim-ink    { animation: fade-rise 0.5s ease-out both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anim-rise, .anim-bob, .anim-radar, .anim-stamp, .anim-draw, .anim-draw-2, .anim-ink {
+      animation: none;
+    }
+  }
+
+  /* Scrollable strips that don't show a scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Coarse paper grain — layered over a paper background color. */
+  .paper-grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  }
+
+  /* CSS graph-paper texture for boxed areas that aren't SVG plots. */
+  .chart-grid-paper {
+    background-image:
+      linear-gradient(var(--chart-grid, oklch(1 0 0 / 5%)) 1px, transparent 1px),
+      linear-gradient(90deg, var(--chart-grid, oklch(1 0 0 / 5%)) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
