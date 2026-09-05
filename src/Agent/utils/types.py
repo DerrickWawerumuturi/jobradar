@@ -1,5 +1,7 @@
-from typing import TypedDict
+from datetime import datetime
+from typing import Literal, TypedDict
 
+from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, field_validator
 from dataclasses import field
 from dataclasses import dataclass
@@ -65,6 +67,10 @@ class Job(BaseModel):
     # Persistence-only. Excluded from serialisation so the storage layer can
     # identify a posting and keep its source payload without widening the
     # /analyze response.
+    # Our own jobs.id, attached after persistence so the dashboard can bookmark
+    # a posting. None when persistence is disabled or the write failed.
+    db_id: int | None = None
+
     provider: str | None = Field(default=None, exclude=True)
     external_id: str | None = Field(default=None, exclude=True)
     raw: dict | None = Field(default=None, exclude=True, repr=False)
@@ -143,3 +149,21 @@ class CVQuery(BaseModel):
     experience: list[Experience] = Field(default_factory=list)
     experience_level: str | None
     education: list[Education]
+
+
+class BookmarkRequest(BaseModel):
+    job_id: int
+    title: str | None = None
+    company: str | None = None
+    source: str | None = None
+    match_score: float | None = None
+    cv_snapshot: dict | None = None
+
+
+class TransitionRequest(BaseModel):
+    to_status: Literal[
+        "applied", "screening", "interview", "offer", "rejected", "withdrawn"
+    ]
+    occurred_at: datetime | None = None
+    scheduled_for: datetime | None = None
+    note: str | None = None

@@ -92,7 +92,7 @@ class JobIngestionService:
         self.enabled = is_configured()
         self._retry_after = 0.0
         if not self.enabled:
-            print("DATABASE_URL is not set — job persistence is disabled")
+            print("DATABASE_URL is not set, job persistence is disabled")
 
     def _available(self) -> bool:
         return self.enabled and time.monotonic() >= self._retry_after
@@ -234,7 +234,17 @@ class JobIngestionService:
         except Exception as err:
             self._record_failure("store skills", err)
 
-class UserIngestionService:
+class CVIngestionService:
+    def provision(self, payload):
+        with connection() as conn:
+            return user_repository.upsert_user(
+                conn,
+                payload["sub"],
+                payload.get("email"),
+                payload.get("name"),
+                payload.get("image"),
+            )
+
     def store(self, payload, cv_dict):
         with connection() as conn:
             user_id = user_repository.upsert_user(
@@ -251,4 +261,4 @@ class UserIngestionService:
         with connection() as conn:
             return user_repository.get_cv(conn, payload["sub"])
 
-user_ingestion = UserIngestionService()
+user_ingestion = CVIngestionService()

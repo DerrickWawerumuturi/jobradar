@@ -1,10 +1,17 @@
 from psycopg.types.json import Jsonb
 
 
+
+
 GET_CV = """
 select c.data
 from cvs c
 join users u on u.id = c.user_id
+where u.sub = %s
+"""
+SELECT_USER = """
+select u.id
+from users u
 where u.sub = %s
 """
 
@@ -27,6 +34,12 @@ on conflict(user_id) do update set
     updated_at = now()
 """
 
+
+def get_user_id(conn, sub):
+    with conn.cursor() as cur:
+        cur.execute(SELECT_USER, (sub,))
+        row = cur.fetchone()
+        return row["id"] if row else None
 
 
 def upsert_user(conn, sub, email, name, image) -> int:

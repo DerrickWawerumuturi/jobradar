@@ -1,17 +1,21 @@
-from typing import Annotated
-
 from fastapi import FastAPI, File, HTTPException, UploadFile,Depends
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pdf_inspector import pdf_inspector
 import asyncio
 import tempfile
 import os
 import sys
 
+
+from src.database.services.applications import (
+    application_service, UserNotFound, ApplicationNotFound, BookmarkNotRemovable,
+    JobNotFound,
+)
 from src.database.services.ingestion import user_ingestion
 from src.cv.current_user import current_user
-from src.Agent.utils.types import CVQuery
+from src.Agent.utils.types import CVQuery, BookmarkRequest, TransitionRequest
 from src.cv.dashboard import dashboard
 from src.Agent.Framework.JobRadarAgent import job_radar_agent
 
@@ -118,7 +122,62 @@ async def get_cv(user = Depends(current_user)):
         data = await run_in_threadpool(user_ingestion.fetch, user)
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"Error fetching your cv: {err}") from err
-    
+
     if data is None:
         raise HTTPException(status_code=404, detail="No Cv saved yet")
     return data
+
+
+# Registered handlers keep the CORS headers that a bare exception would lose.
+for exc, code in ((ApplicationNotFound, 404), (JobNotFound, 404),
+                  (UserNotFound, 401), (BookmarkNotRemovable, 409)):
+    app.add_exception_handler(
+        exc,
+        lambda request, err, code=code: JSONResponse(status_code=code, content={"detail": str(err)}),
+    )
+
+
+@app.post("/auth/provision")
+async def provision_user(user=Depends(current_user)):
+    await run_in_threadpool(user_ingestion.provision, user)
+    return {"ok": True}
+
+
+@app.post("/dashboard/applications")
+async def toggle_bookmark(body: BookmarkRequest, user=Depends(current_user)):
+    return await run_in_threadpool(
+        application_service.toggle_bookmark,
+        user,
+        job_id=body.job_id,
+        title=body.title,
+        company=body.company,
+        source=body.source,
+        match_score=body.match_score,
+        cv_snapshot=body.cv_snapshot,
+    )
+
+
+@app.get("/dashboard/applications")
+async def list_applications(user=Depends(current_user)):
+    return await run_in_threadpool(application_service.list_applications, user)
+
+
+@app.post("/dashboard/applications/{application_id}/transition")
+async def transition_application(
+    application_id: int, body: TransitionRequest, user=Depends(current_user)
+):
+    await run_in_threadpool(
+        application_service.transition,
+        user,
+        application_id,
+        body.to_status,
+        body.occurred_at,
+        scheduled_for=body.scheduled_for,
+        note=body.note,
+    )
+    return {"status": body.to_status}
+
+
+@app.get("/dashboard/applications/{application_id}/history")
+async def application_history(application_id: int, user=Depends(current_user)):
+    return await run_in_threadpool(application_service.history, user, application_id)

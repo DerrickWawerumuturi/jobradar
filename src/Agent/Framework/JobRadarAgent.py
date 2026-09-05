@@ -6,7 +6,7 @@ from src.Agent.Framework.QueryInterpreter import QueryInterpreter
 from src.Agent.Framework.SearchEngine import SearchEngine, MIN_JOBS_FLOOR
 from src.Agent.utils.skill_extractor import SkillExtractor
 from src.Agent.utils.parser import parse_retrieved_jobs
-from src.database.services.ingestion import JobIngestionService
+from src.database.services.ingestion import JobIngestionService, resolve_identity
 
 
 class JobRadarAgent:
@@ -40,6 +40,8 @@ class JobRadarAgent:
         # it. Dropping it here keeps it out of the response serialiser.
         for job in raw_jobs:
             job.raw = None
+            identity, _, _ = resolve_identity(job)
+            job.db_id = job_ids.get(identity)
 
         # After persistence, so the full result set still reaches the dataset —
         # a posting outside this user's market is still a real observation of

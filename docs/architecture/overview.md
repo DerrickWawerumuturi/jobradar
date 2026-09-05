@@ -71,7 +71,7 @@ behaves exactly as before. See `decisions/persistent-job-storage.md`.
   "ranked_jobs": [
     {
       "job": {
-        "job":    { "title", "company", "description", "location",
+        "job":    { "db_id", "title", "company", "description", "location",
                     "salary_min", "salary_max", "salary_currency",
                     "salary_period", "posted_at", "posted_at_utc", ... },
         "skills": ["Python (Programming Language)", ...]
@@ -82,6 +82,10 @@ behaves exactly as before. See `decisions/persistent-job-storage.md`.
   ]
 }
 ```
+
+`db_id` is the `jobs.id` row the posting was stored under, and is what the
+dashboard sends when bookmarking. It is `null` when persistence is disabled
+or the write failed, since storage is fail-soft.
 
 Note the double nesting on `ranked_jobs[i].job.job` — it falls out of
 `SimilarityEngine` wrapping a `ProcessedJob`, which itself wraps a `Job`. The
