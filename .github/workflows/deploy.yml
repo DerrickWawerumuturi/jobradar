@@ -1,0 +1,41 @@
+name: deploy backend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; a newer push supersedes a queued one.
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push image
+        run: |
+          az acr login --name jobradarregistry
+          IMAGE=jobradarregistry.azurecr.io/jobradar:${GITHUB_SHA::8}
+          docker build --platform linux/amd64 -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Update container app
+        run: |
+          az containerapp update \
+            -n jobradar-backend \
+            -g jobradar-rg \
+            --image jobradarregistry.azurecr.io/jobradar:${GITHUB_SHA::8}
+
+      - name: Smoke test
+        run: |
+          sleep 20
+          curl --fail --max-time 30 \
+            https://jobradar-backend.agreeabledune-79b95957.southafricanorth.azurecontainerapps.io/health
