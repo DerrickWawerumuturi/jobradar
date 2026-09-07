@@ -1,0 +1,547 @@
+<title>JobRadar Dashboard Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.155 0.004 260);
+    --fg: oklch(0.955 0.004 80);
+    --muted: oklch(0.70 0.012 260);
+    --border: oklch(1 0 0 / 8%);
+    --card: oklch(0.19 0.005 260);
+    --primary: oklch(0.66 0.205 35);
+    --lime: oklch(0.92 0.19 116);
+    --lime-ink: oklch(0.28 0.07 152);
+    --green: oklch(0.62 0.12 158);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    background-image: linear-gradient(oklch(1 0 0 / 4%) 1px, transparent 1px),
+                      linear-gradient(90deg, oklch(1 0 0 / 4%) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--fg);
+    font-family: "Space Grotesk", ui-sans-serif, sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+  .hand { font-family: "Caveat", cursive; color: var(--primary); }
+  .label { font-family:"JetBrains Mono", monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color: var(--muted); }
+  .mono { font-family:"JetBrains Mono", monospace; }
+
+  nav.top { display:flex; justify-content:space-between; align-items:center; padding: 18px 24px; }
+  .wordmark { font-weight:700; font-size:20px; text-transform:uppercase; letter-spacing:-0.02em; }
+  .wordmark b { color: var(--primary); }
+  .proto-pill { font-family:"JetBrains Mono"; font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color: var(--lime-ink); background: var(--lime); border-radius: 3px; padding: 4px 8px; font-weight: 700; transform: rotate(-2deg); display:inline-block; }
+  .avatar { width:30px; height:30px; border-radius:50%; background: var(--primary); display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 8px 24px 70px; }
+
+  /* page tabs */
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); align-items:center; overflow-x:auto; }
+  .tab { font-family:"JetBrains Mono"; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; padding: 10px 14px; color: var(--muted); border-radius:5px 5px 0 0; white-space: nowrap; }
+  .tab[aria-selected="true"] { color: var(--fg); background: var(--card); border:1px solid var(--border); border-bottom-color: var(--card); position:relative; top:1px; }
+  .tab .cnt { color: var(--lime); margin-left: 4px; }
+  .tabs .meta { margin-left:auto; font-family:"JetBrains Mono"; font-size:10px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; padding-right: 4px; white-space:nowrap; }
+  .tabs .meta b { color: var(--green); font-weight: 500; }
+
+  main { padding-top: 26px; }
+  section.view { display:none; }
+  section.view.on { display:block; }
+
+  /* ---------- overview ---------- */
+  .greet { display:flex; justify-content:space-between; align-items:flex-end; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+  .greet h1 { font-size: 28px; font-weight:700; letter-spacing:-0.01em; }
+  .greet h1 span { color: var(--primary); }
+  .greet p { color: var(--muted); margin-top: 5px; }
+  .greet .hand { font-size: 22px; transform: rotate(-2deg); display:inline-block; }
+
+  .stats { display:grid; grid-template-columns: repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom: 30px; }
+  .stat { padding: 15px 18px 13px; border-left:1px solid var(--border); }
+  .stat:first-child { border-left:0; padding-left:0; }
+  .stat .num { font-family:"JetBrains Mono"; font-size:28px; font-weight:700; line-height:1; margin-top:8px; font-variant-numeric: tabular-nums; }
+  .stat .num small { font-size:13px; color:var(--muted); font-weight:400; }
+  .stat .sub { font-size:11px; color:var(--muted); margin-top:6px; line-height:1.45; }
+  .stat .up { color: var(--green); }
+
+  .cols { display:grid; grid-template-columns: 1fr 300px; gap: 40px; align-items:start; }
+  h2.sec { font-family:"JetBrains Mono"; font-size:11px; text-transform:uppercase; letter-spacing:0.18em; color:var(--muted); font-weight:500; padding-bottom:10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:baseline; }
+  h2.sec button { font-family:"JetBrains Mono"; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color: var(--primary); }
+
+  .opp { width:100%; text-align:left; display:flex; align-items:center; gap:16px; padding: 14px 4px; border-bottom:1px solid var(--border); }
+  .opp:hover { background: oklch(1 0 0 / 3%); }
+  .opp .t { font-weight:500; font-size:15px; }
+  .opp .c { color:var(--muted); font-size:11.5px; margin-top:3px; font-family:"JetBrains Mono"; }
+  .opp .role { flex:1; }
+  .chip { font-family:"JetBrains Mono"; font-size:10px; padding:3px 8px; border:1px solid var(--border); border-radius:3px; color:var(--muted); white-space:nowrap; }
+  .chip.have { color:var(--green); border-color: oklch(0.62 0.12 158 / 35%); }
+  .chip.gap { color:var(--primary); border-color: oklch(0.66 0.205 35 / 35%); }
+  .mchip { font-family:"JetBrains Mono"; font-weight:700; font-size:12px; padding:5px 9px; border-radius:3px; background:transparent; border:1px solid var(--border); }
+  .mchip.hot { background: var(--lime); color: var(--lime-ink); border:0; }
+
+  .opp-open { border-bottom:1px solid var(--border); background: var(--card); border-left:2px solid var(--lime); padding: 16px 20px 18px; }
+  .opp-open .head { display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+  .opp-open .t { font-weight:700; font-size:16px; }
+  .opp-open .c { color:var(--muted); font-family:"JetBrains Mono"; font-size:11.5px; margin-top:4px; }
+  .why { display:grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 20px; margin-top: 16px; }
+  .why h4 { font-family:"JetBrains Mono"; font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted); margin-bottom:8px; font-weight:500; }
+  .why ul { list-style:none; }
+  .why li { font-size:13px; padding:2.5px 0; font-family:"JetBrains Mono"; }
+  .ok { color: var(--green); }
+  .miss { color: var(--primary); }
+  .why p { font-size:13px; line-height:1.55; color:var(--muted); }
+  .why p b { color: var(--fg); font-weight:500; }
+
+  .actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .btn { font-family:"JetBrains Mono"; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; padding:8px 13px; border-radius:4px; border:1px solid var(--border); transition: border-color 120ms; }
+  .btn:hover { border-color: oklch(1 0 0 / 25%); }
+  .btn.solid { background: var(--lime); color: var(--lime-ink); border:1px solid transparent; font-weight:700; }
+  .btn.done { color: var(--green); border-color: oklch(0.62 0.12 158 / 45%); }
+
+  .rail section { margin-bottom: 30px; }
+  .r-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0 3px; font-size:13.5px; }
+  .r-row .pct { font-family:"JetBrains Mono"; font-size:12px; color: var(--green); }
+  .bar { height:5px; background: oklch(1 0 0 / 7%); border-radius:2px; margin-bottom:7px; overflow:hidden; }
+  .bar i { display:block; height:100%; background: var(--green); }
+  .bar.g i { background: var(--primary); }
+  .skills-line { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; }
+  .gapnote { font-size:12px; color:var(--muted); line-height:1.55; padding-top:10px; }
+  .gapnote b { color: var(--fg); font-weight:500; }
+  .pipe { display:grid; grid-template-columns:repeat(4,1fr); padding-top:12px; }
+  .pipe .n { font-family:"JetBrains Mono"; font-size:22px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .pipe .l { font-size:9.5px; color:var(--muted); font-family:"JetBrains Mono"; text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
+  .note { margin-top: 16px; display:flex; align-items:center; gap:8px; }
+  .note .hand { font-size: 20px; transform: rotate(-2deg); }
+  svg.arr { overflow:visible; flex-shrink:0; }
+
+  /* ---------- opportunities ---------- */
+  .split { display:grid; grid-template-columns: 1fr 350px; border:1px solid var(--border); background: oklch(0.165 0.004 260 / 88%); }
+  table { width:100%; border-collapse:collapse; }
+  th { font-family:"JetBrains Mono"; font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted); text-align:left; font-weight:500; padding:11px 14px; border-bottom:1px solid var(--border); }
+  td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover td { background: oklch(1 0 0 / 3%); }
+  tr.sel td { background: oklch(0.92 0.19 116 / 7%); }
+  tr.sel td:first-child { border-left:2px solid var(--lime); padding-left:12px; }
+  td:first-child { border-left:2px solid transparent; }
+  .co { color:var(--muted); font-family:"JetBrains Mono"; font-size:11px; margin-top:2px; }
+  .score { font-family:"JetBrains Mono"; font-weight:700; font-size:12px; padding:3px 8px; border-radius:3px; display:inline-block; font-variant-numeric: tabular-nums; }
+  .score.hi { background:var(--lime); color:var(--lime-ink); }
+  .score.mid { background: oklch(0.92 0.19 116 / 16%); color: var(--lime); }
+  .score.low { border:1px solid var(--border); color:var(--muted); }
+  .skmini { font-family:"JetBrains Mono"; font-size:11px; color:var(--muted); }
+  .skmini b { color:var(--green); font-weight:500; }
+  .skmini i { color:var(--primary); font-style:normal; }
+  .status { font-family:"JetBrains Mono"; font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); white-space:nowrap; }
+  .status.new { color:var(--lime); border-color: oklch(0.92 0.19 116 / 40%); }
+  .status.saved { color: var(--fg); }
+  .status.applied { color:var(--green); border-color: oklch(0.62 0.12 158 / 40%); }
+  .status.interview { color:var(--primary); border-color: oklch(0.66 0.205 35 / 45%); }
+  .status.offer { color:var(--lime-ink); background: var(--lime); border-color: transparent; font-weight:700; }
+
+  .panel { border-left:1px solid var(--border); background:var(--card); padding: 20px 22px; }
+  .panel h3 { font-size:18px; font-weight:700; margin-top:4px; }
+  .panel .c { color:var(--muted); font-family:"JetBrains Mono"; font-size:11.5px; margin-top:4px; }
+  .bigmatch { margin:16px 0 12px; display:flex; align-items:baseline; gap:10px; }
+  .bigmatch .n { font-family:"JetBrains Mono"; font-size:38px; font-weight:700; color:var(--lime); line-height:1; }
+  .meter { height:6px; border-radius:3px; background: oklch(1 0 0 / 8%); overflow:hidden; margin-bottom:18px; }
+  .meter i { display:block; height:100%; background: linear-gradient(90deg, var(--green), var(--lime)); transition: width 300ms ease; }
+  .brk { border-top:1px solid var(--border); padding-top:12px; }
+  .brow { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:13px; }
+  .brow .k { color:var(--muted); }
+  .brow .v { font-family:"JetBrains Mono"; font-size:11.5px; }
+  .panel h4 { font-family:"JetBrains Mono"; font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted); margin:16px 0 8px; font-weight:500; }
+  .panel .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .panel p.whyp { font-size:13px; line-height:1.55; color:var(--muted); }
+  .panel p.whyp b { color:var(--fg); font-weight:500; }
+
+  /* ---------- gaps ---------- */
+  .gapgrid { display:grid; grid-template-columns: 1.1fr 1fr; gap: 44px; align-items:start; }
+  .g-row { padding: 11px 0; border-bottom:1px solid var(--border); }
+  .g-row .row { display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px; }
+  .g-row .row b { font-family:"JetBrains Mono"; font-weight:500; }
+  .g-row .row span { font-family:"JetBrains Mono"; font-size:11.5px; color:var(--muted); }
+  .insight { border:1px solid oklch(0.66 0.205 35 / 35%); border-radius:4px; padding: 16px 18px; margin-top: 20px; background: oklch(0.66 0.205 35 / 6%); }
+  .insight .label { color: var(--primary); margin-bottom: 8px; }
+  .insight p { font-size:13.5px; line-height:1.6; color:var(--muted); }
+  .insight p b { color: var(--fg); font-weight:500; }
+
+  /* ---------- applications ---------- */
+  .kan { display:grid; grid-template-columns: repeat(4,1fr); gap: 0; border:1px solid var(--border); border-bottom:0; }
+  .kan .cell { padding: 14px 16px; border-left:1px solid var(--border); }
+  .kan .cell:first-child { border-left:0; }
+  .kan .n { font-family:"JetBrains Mono"; font-size:24px; font-weight:700; margin-top:6px; font-variant-numeric: tabular-nums; }
+  .apps-empty { padding: 40px 20px; text-align:center; color: var(--muted); border:1px solid var(--border); font-size: 13.5px; }
+  .apps-empty .hand { font-size: 22px; display:block; margin-top: 8px; }
+  .adv { font-family:"JetBrains Mono"; font-size:10px; color: var(--muted); letter-spacing: 0.06em; }
+  .adv:hover { color: var(--lime); }
+
+  /* toast */
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border:1px solid var(--border); border-left: 2px solid var(--lime); padding: 10px 16px; font-family:"JetBrains Mono"; font-size: 11.5px; border-radius: 4px; transition: transform 220ms ease; z-index: 50; }
+  #toast.on { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    .cols, .gapgrid { grid-template-columns: 1fr; gap: 30px; }
+    .split { grid-template-columns: 1fr; }
+    .panel { border-left: 0; border-top: 1px solid var(--border); }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+    .stat { border-top: 1px solid var(--border); }
+    .stat:nth-child(-n+2) { border-top: 0; }
+    .why { grid-template-columns: 1fr; gap: 14px; }
+    .skcol { display: none; }
+    .greet .hand { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .meter i, #toast { transition: none; }
+  }
+</style>
+
+<nav class="top">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div>
+      <div class="wordmark">Jobradar<b>.</b></div>
+      <div class="label" style="font-size:8.5px; margin-top:2px;">Market intelligence</div>
+    </div>
+    <span class="proto-pill">Prototype · mock data</span>
+  </div>
+  <div class="avatar">DM</div>
+</nav>
+
+<div class="wrap">
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <main id="main"></main>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+const JOBS = [
+  { id:1, role:"ML Engineer", company:"Acme Technologies", loc:"Nairobi · Hybrid", match:92, req:10,
+    have:["Python","FastAPI","PostgreSQL","ML pipelines","SQL","Git","REST APIs","Pandas"], missing:["AWS","Docker"],
+    exp:"Meets", locFit:"Nairobi / hybrid", dir:"ML focus", found:"2h ago", status:"new",
+    why:'Your <b>Python + ML + API</b> experience matches the technical requirements unusually well — and <b>Docker</b>, your only real gap here, appears in 61% of your matched roles anyway.' },
+  { id:2, role:"Software Engineer", company:"Wave Mobile", loc:"Remote", match:88, req:9,
+    have:["React","TypeScript","Next.js","Node","SQL","Git","Testing"], missing:["GraphQL"],
+    exp:"Meets", locFit:"Remote", dir:"Fullstack", found:"5h ago", status:"new",
+    why:'Your <b>React + TypeScript + Next.js</b> stack covers the whole frontend half, and your SQL depth carries the rest. GraphQL is the single named gap.' },
+  { id:3, role:"AI Engineer", company:"Sable Labs", loc:"Remote (EU)", match:84, req:8,
+    have:["Python","LLM APIs","FastAPI","Prompting","SQL","Git"], missing:["Kubernetes","AWS"],
+    exp:"Meets", locFit:"Remote OK", dir:"Applied AI", found:"1d ago", status:"applied",
+    why:'You have hands-on <b>LLM integration</b> experience most applicants lack. The gaps are infra-side, not model-side — the easier half to learn.' },
+  { id:4, role:"Backend Engineer", company:"Nomad Health", loc:"Remote", match:81, req:9,
+    have:["FastAPI","SQL","PostgreSQL","Python","REST APIs","Git"], missing:["Go"],
+    exp:"Meets", locFit:"Remote", dir:"Backend", found:"1d ago", status:"saved",
+    why:'Strong overlap on the data layer — <b>PostgreSQL + FastAPI</b> is their exact stack today. Go is listed for future services.' },
+  { id:5, role:"Data Scientist", company:"Helios Analytics", loc:"Hybrid", match:73, req:9,
+    have:["Python","Pandas","SQL","Statistics","Git"], missing:["Spark","AWS"],
+    exp:"Below (3+ asked)", locFit:"Hybrid", dir:"Analytics", found:"2d ago", status:null,
+    why:'Your analysis skills fit, but they ask for <b>3+ years</b> and large-scale tooling. Worth watching, not chasing.' },
+  { id:6, role:"Fullstack Developer", company:"Kite Retail", loc:"Remote", match:64, req:11,
+    have:["React","SQL","Git","Node","REST APIs"], missing:["Vue","PHP","Laravel"],
+    exp:"Meets", locFit:"Remote", dir:"Fullstack", found:"3d ago", status:null,
+    why:'The overlap is generic web skills — the core of this role is a <b>Vue + PHP</b> stack you have not worked in.' },
+];
+
+const GAPS = [
+  { skill:"Docker", pct:61 }, { skill:"AWS", pct:58 }, { skill:"Kubernetes", pct:37 }, { skill:"GraphQL", pct:24 },
+];
+const MARKET = [
+  { skill:"Python", pct:78, have:true }, { skill:"SQL", pct:72, have:true }, { skill:"Docker", pct:61, have:false },
+  { skill:"AWS", pct:58, have:false }, { skill:"React", pct:52, have:true }, { skill:"FastAPI", pct:41, have:true },
+  { skill:"Kubernetes", pct:37, have:false },
+];
+const ROLES = [ ["ML Engineer",89], ["Software Engineer",86], ["AI Engineer",81], ["Data Scientist",73] ];
+const PIPE_ORDER = ["saved","applied","interview","offer"];
+
+let state = { tab:"overview", selected:1, expanded:1 };
+
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => s;
+const scoreCls = m => m >= 85 ? "hi" : m >= 70 ? "mid" : "low";
+const statusLabel = s => s === "new" ? "New" : s ? s[0].toUpperCase()+s.slice(1) : "—";
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200);
+}
+
+function counts() {
+  const c = { saved:0, applied:0, interview:0, offer:0 };
+  for (const j of JOBS) if (c[j.status] !== undefined) c[j.status]++;
+  c.saved += c.applied + c.interview + c.offer; // everything tracked passed through "saved"
+  return c;
+}
+
+/* ---------- tabs ---------- */
+const TABS = [
+  ["overview","Overview"], ["opps","Opportunities"], ["gaps","Skill gaps"], ["apps","Applications"],
+];
+function renderTabs() {
+  const tracked = JOBS.filter(j => PIPE_ORDER.includes(j.status)).length;
+  $("#tabs").innerHTML = TABS.map(([id, label]) =>
+    `<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${label}${id==="apps"&&tracked?`<span class="cnt">${tracked}</span>`:""}</button>`
+  ).join("") + `<span class="meta">Last scan 26 min ago · <b>+2 new</b></span>`;
+}
+
+/* ---------- shared bits ---------- */
+const arrow = flip => `<svg class="arr" width="50" height="24" viewBox="0 0 50 24" fill="none" style="${flip?"transform:scaleX(-1);":""}">
+  <path d="M4 20 C 16 22, 34 16, 46 5" stroke="oklch(0.66 0.205 35 / 80%)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M38 3 L 48 3 L 48 13" stroke="oklch(0.66 0.205 35 / 80%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`;
+
+function whyBlock(j) {
+  return `<div class="why">
+    <div><h4>You bring</h4><ul>${j.have.slice(0,4).map(s=>`<li class="ok">&#10003; ${s}</li>`).join("")}</ul></div>
+    <div><h4>Your gap</h4><ul>${j.missing.length?j.missing.map(s=>`<li class="miss">&#9651; ${s}</li>`).join(""):`<li class="ok">&#10003; none listed</li>`}</ul></div>
+    <div><h4>Why this fits</h4><p>${j.why}</p></div>
+  </div>`;
+}
+
+function actionBtns(j) {
+  const saved = PIPE_ORDER.includes(j.status);
+  const applied = ["applied","interview","offer"].includes(j.status);
+  return `<div class="actions">
+    <button class="btn solid" data-act="view" data-id="${j.id}">View job</button>
+    <button class="btn ${saved?"done":""}" data-act="save" data-id="${j.id}">${saved?"&#10003; Saved":"Save"}</button>
+    <button class="btn ${applied?"done":""}" data-act="apply" data-id="${j.id}">${applied?"&#10003; Applied":"Mark applied"}</button>
+  </div>`;
+}
+
+/* ---------- overview ---------- */
+function overviewView() {
+  const c = counts();
+  const newCount = JOBS.filter(j=>j.status==="new").length;
+  const top = [...JOBS].sort((a,b)=>b.match-a.match).slice(0,4);
+  return `
+  <div class="greet">
+    <div>
+      <h1>Good morning, Derrick<span>.</span></h1>
+      <p>Here's what's happening in your job market.</p>
+    </div>
+    <span class="hand">your market moved while you were away &#8594;</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Profile coverage</div><div class="num">82<small>%</small></div><div class="sub">of skills asked for in your matched roles</div></div>
+    <div class="stat"><div class="label">New matches</div><div class="num">${newCount}</div><div class="sub"><span class="up">both above 85%</span> in this morning's scan</div></div>
+    <div class="stat"><div class="label">Postings analyzed</div><div class="num">128</div><div class="sub">across Remotive · Muse · Jooble</div></div>
+    <div class="stat"><div class="label">Applications</div><div class="num">${c.applied+c.interview+c.offer}</div><div class="sub">${c.interview} waiting on a reply</div></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h2 class="sec">Top opportunities <button data-goto="opps">View all ${JOBS.length} &#8594;</button></h2>
+      ${top.map(j => state.expanded === j.id ? `
+        <div class="opp-open">
+          <div class="head">
+            <div><div class="t">${j.role}</div><div class="c">${j.company} · ${j.loc}</div></div>
+            <span class="mchip hot">${j.match}% MATCH</span>
+          </div>
+          ${whyBlock(j)}
+          ${actionBtns(j)}
+        </div>` : `
+        <button class="opp" data-expand="${j.id}">
+          <span class="role"><span class="t">${j.role}</span><span class="c" style="display:block">${j.company} · ${j.loc}</span></span>
+          <span class="chips" style="display:flex; gap:6px;">
+            ${j.have.slice(0,2).map(s=>`<span class="chip have">&#10003; ${s}</span>`).join("")}
+            ${j.missing.slice(0,1).map(s=>`<span class="chip gap">&#9651; ${s}</span>`).join("")}
+          </span>
+          <span class="mchip">${j.match}%</span>
+        </button>`).join("")}
+      <div class="note">${arrow(true)}<span class="hand">tap any row &#8594; every match explains itself</span></div>
+    </div>
+
+    <div class="rail">
+      <section>
+        <h2 class="sec">You, right now</h2>
+        <div style="padding-top:12px;">
+          <div class="label" style="margin-bottom:4px;">Competitive for</div>
+          ${ROLES.slice(0,3).map(([r,p])=>`<div class="r-row"><span>${r}</span><span class="pct">${p}%</span></div><div class="bar"><i style="width:${p}%"></i></div>`).join("")}
+          <div class="skills-line">${["Python","React","TypeScript","PostgreSQL","FastAPI"].map(s=>`<span class="chip have">${s}</span>`).join("")}</div>
+        </div>
+      </section>
+      <section>
+        <h2 class="sec">Worth learning next</h2>
+        <div style="padding-top:6px;">
+          ${GAPS.slice(0,3).map(g=>`<div class="r-row"><span class="mono" style="font-size:13px">${g.skill}</span><span class="pct" style="color:var(--muted)">${g.pct}% of your matches</span></div><div class="bar g"><i style="width:${g.pct}%"></i></div>`).join("")}
+          <p class="gapnote">Adding <b>AWS</b> would lift your coverage in <b>58%</b> of the roles currently matching you.</p>
+          <span class="hand" style="font-size:20px; display:inline-block; transform:rotate(-2deg); margin-top:6px;">one skill, half your market &#8594;</span>
+        </div>
+      </section>
+      <section>
+        <h2 class="sec">Your pipeline</h2>
+        <div class="pipe">
+          <div><div class="n">${c.saved}</div><div class="l">Saved</div></div>
+          <div><div class="n">${c.applied+c.interview+c.offer}</div><div class="l">Applied</div></div>
+          <div><div class="n">${c.interview}</div><div class="l">Interview</div></div>
+          <div><div class="n">${c.offer}</div><div class="l">Offer</div></div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* ---------- opportunities ---------- */
+function oppsView() {
+  const sel = JOBS.find(j=>j.id===state.selected) || JOBS[0];
+  return `
+  <div class="greet" style="margin-bottom:18px;">
+    <div>
+      <h1>Your opportunities<span>.</span></h1>
+      <p>${JOBS.length} live postings match your profile — sorted by fit, each one explained.</p>
+    </div>
+  </div>
+  <div class="split">
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th style="width:32%">Role</th><th style="width:11%">Match</th><th class="skcol" style="width:33%">Skills</th><th style="width:13%">Status</th><th style="width:11%">Found</th></tr></thead>
+        <tbody>
+          ${[...JOBS].sort((a,b)=>b.match-a.match).map(j=>`
+          <tr class="${j.id===sel.id?"sel":""}" data-sel="${j.id}" tabindex="0">
+            <td><div>${j.role}</div><div class="co">${j.company} · ${j.loc}</div></td>
+            <td><span class="score ${scoreCls(j.match)}">${j.match}</span></td>
+            <td class="skmini skcol"><b>${j.have.length > j.req ? j.req : j.have.length}/${j.req} required</b> · missing <i>${j.missing.join(", ")||"—"}</i></td>
+            <td><span class="status ${j.status||""}">${statusLabel(j.status)}</span></td>
+            <td class="skmini">${j.found}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+    <aside class="panel">
+      <div class="label">Match breakdown</div>
+      <h3>${sel.role}</h3>
+      <div class="c">${sel.company} · ${sel.loc}</div>
+      <div class="bigmatch"><span class="n">${sel.match}</span><span class="label" style="letter-spacing:0.14em;">% match</span></div>
+      <div class="meter"><i style="width:${sel.match}%"></i></div>
+      <div class="brk">
+        <div class="brow"><span class="k">Required skills</span><span class="v ok">&#10003; ${Math.min(sel.have.length, sel.req)} / ${sel.req}</span></div>
+        <div class="brow"><span class="k">Experience level</span><span class="v ${sel.exp.startsWith("Meets")?"ok":"miss"}">${sel.exp.startsWith("Meets")?"&#10003;":"&#9651;"} ${sel.exp}</span></div>
+        <div class="brow"><span class="k">Location</span><span class="v ok">&#10003; ${sel.locFit}</span></div>
+        <div class="brow"><span class="k">Role direction</span><span class="v ok">&#10003; ${sel.dir}</span></div>
+      </div>
+      <h4>Your advantage</h4>
+      <div class="chips">${sel.have.slice(0,4).map(s=>`<span class="chip have">${s}</span>`).join("")}</div>
+      <h4>Your gap</h4>
+      <div class="chips">${sel.missing.length?sel.missing.map(s=>`<span class="chip gap">${s}</span>`).join(""):`<span class="chip have">none listed</span>`}</div>
+      <h4>Why we're recommending this</h4>
+      <p class="whyp">${sel.why}</p>
+      ${actionBtns(sel)}
+    </aside>
+  </div>
+  <div class="note">${arrow(false)}<span class="hand">click any row &#8594; see exactly why it's on your radar</span></div>`;
+}
+
+/* ---------- gaps ---------- */
+function gapsView() {
+  return `
+  <div class="greet" style="margin-bottom:18px;">
+    <div>
+      <h1>What the market wants<span>.</span></h1>
+      <p>Skills ranked by how often they appear in the ${JOBS.length} roles matching you.</p>
+    </div>
+  </div>
+  <div class="gapgrid">
+    <div>
+      <h2 class="sec">Skill demand · your matches</h2>
+      ${MARKET.map(m=>`<div class="g-row">
+        <div class="row"><b>${m.skill} ${m.have?'<span class="ok">&#10003;</span>':'<span class="miss">&#9651;</span>'}</b><span>${m.pct}% of matched roles</span></div>
+        <div class="bar ${m.have?"":"g"}"><i style="width:${m.pct}%"></i></div>
+      </div>`).join("")}
+    </div>
+    <div>
+      <h2 class="sec">Your biggest opportunity</h2>
+      <div class="insight">
+        <div class="label">If you learn one thing</div>
+        <p><b>AWS</b> appears in <b>58%</b> of the roles currently matching your profile, and it's the gap named most often in your top-ten matches. Adding it would raise your profile coverage from <b>82% to an estimated 91%</b>.</p>
+      </div>
+      <div class="insight" style="border-color: oklch(0.62 0.12 158 / 35%); background: oklch(0.62 0.12 158 / 6%); margin-top:14px;">
+        <div class="label" style="color:var(--green)">Already paying off</div>
+        <p>Your <b>Python + SQL</b> pair covers the two most-demanded skills in your market — they appear together in <b>7 of your 14</b> current matches.</p>
+      </div>
+      <div class="note">${arrow(true)}<span class="hand">every number here is counted from real postings, not vibes</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- applications ---------- */
+function appsView() {
+  const c = counts();
+  const tracked = JOBS.filter(j=>PIPE_ORDER.includes(j.status));
+  return `
+  <div class="greet" style="margin-bottom:18px;">
+    <div>
+      <h1>Your applications<span>.</span></h1>
+      <p>Everything you're pursuing, and where each one stands.</p>
+    </div>
+    <span class="hand">click a status to move it along &#8594;</span>
+  </div>
+  <div class="kan">
+    <div class="cell"><div class="label">Saved</div><div class="n">${c.saved}</div></div>
+    <div class="cell"><div class="label">Applied</div><div class="n">${c.applied}</div></div>
+    <div class="cell"><div class="label">Interview</div><div class="n">${c.interview}</div></div>
+    <div class="cell"><div class="label">Offer</div><div class="n">${c.offer}</div></div>
+  </div>
+  ${tracked.length ? `
+  <div style="border:1px solid var(--border); overflow-x:auto;">
+    <table>
+      <thead><tr><th style="width:34%">Role</th><th style="width:12%">Match</th><th style="width:18%">Status</th><th style="width:20%">Last change</th><th style="width:16%"></th></tr></thead>
+      <tbody>
+        ${tracked.map(j=>`<tr>
+          <td><div>${j.role}</div><div class="co">${j.company}</div></td>
+          <td><span class="score ${scoreCls(j.match)}">${j.match}</span></td>
+          <td><button class="status ${j.status}" data-advance="${j.id}" title="Advance status">${statusLabel(j.status)}</button></td>
+          <td class="skmini">${j.found}</td>
+          <td style="text-align:right;"><button class="adv" data-advance="${j.id}">advance &#8594;</button></td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+  </div>` : `
+  <div class="apps-empty">
+    Nothing tracked yet.
+    <span class="hand">save or apply to a job in Opportunities &#8594; it lands here</span>
+  </div>`}
+  <div class="note">${arrow(false)}<span class="hand">later, this feeds back in: interview rates per role, response times, what's working</span></div>`;
+}
+
+/* ---------- render + events ---------- */
+const VIEWS = { overview: overviewView, opps: oppsView, gaps: gapsView, apps: appsView };
+function render() {
+  renderTabs();
+  $("#main").innerHTML = `<section class="view on">${VIEWS[state.tab]()}</section>`;
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-tab],[data-goto],[data-expand],[data-sel],[data-act],[data-advance]");
+  if (!t) return;
+  if (t.dataset.tab) { state.tab = t.dataset.tab; render(); }
+  else if (t.dataset.goto) { state.tab = t.dataset.goto; render(); }
+  else if (t.dataset.expand) { state.expanded = +t.dataset.expand; render(); }
+  else if (t.dataset.advance) {
+    const j = JOBS.find(x=>x.id===+t.dataset.advance);
+    const i = PIPE_ORDER.indexOf(j.status);
+    if (i < PIPE_ORDER.length-1) { j.status = PIPE_ORDER[i+1]; toast(`${j.role} → ${statusLabel(j.status)}`); }
+    else toast(`${j.role} is already at Offer 🎉`);
+    render();
+  }
+  else if (t.dataset.act) {
+    const j = JOBS.find(x=>x.id===+t.dataset.id);
+    if (t.dataset.act === "view") toast("Prototype — job links are disabled");
+    if (t.dataset.act === "save" && !PIPE_ORDER.includes(j.status)) { j.status = "saved"; toast(`Saved ${j.role} — it's in your pipeline now`); }
+    else if (t.dataset.act === "save") { j.status = "new"; toast(`Removed ${j.role} from your pipeline`); }
+    if (t.dataset.act === "apply" && !["applied","interview","offer"].includes(j.status)) { j.status = "applied"; toast(`Marked ${j.role} as applied`); }
+    render();
+  }
+  else return;
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.dataset?.sel) { state.selected = +e.target.dataset.sel; render(); }
+});
+document.addEventListener("click", e => {
+  const row = e.target.closest("tr[data-sel]");
+  if (row) { state.selected = +row.dataset.sel; render(); }
+});
+
+render();
+</script>

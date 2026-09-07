@@ -23,7 +23,11 @@ const Navbar = () => {
     const {cv} = useCv();
     const pathname = usePathname();
 
+    // The dashboard brings its own shell — a second header would fight the sidebar.
+    if (pathname.startsWith("/dashboard")) return null;
+
     const productLinks = [
+        ...(cv || analysis ? [{href: "/dashboard", label: "Dashboard"}] : []),
         ...(cv ? [{href: "/onboarding", label: "Profile"}] : []),
         ...(analysis ? [{href: "/analysis", label: "Analysis"}] : []),
     ];
@@ -66,7 +70,7 @@ const Navbar = () => {
                             </Link>
                         ))}
 
-                        {pathname === "/" && productLinks.length === 2 && (
+                        {pathname === "/" && productLinks.length >= 2 && (
                             <div
                                 aria-hidden
                                 className={"pointer-events-none absolute left-1/2 top-full hidden -translate-x-1/2 select-none flex-col items-center pt-1 sm:flex"}

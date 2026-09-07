@@ -1,0 +1,82 @@
+<!doctype html>
+<title>Seed demo analysis</title>
+<p style="font-family:monospace">Seeding a mock analysis into localStorage, then off to the dashboard…</p>
+<script>
+// Dev preview helper: fills the analysis store with realistic mock data so the
+// dashboard can be seen without a 5-minute scan. ?to=/dashboard/gaps to land
+// elsewhere; ?clear=1 to wipe it again.
+const S = (skill, job_count, frequency) => ({skill, job_count, frequency});
+const posting = (db_id, title, company, location, remote, posted_at, url) =>
+  ({id: String(db_id), title, company, description: null, salary: null, salary_min: null,
+    salary_max: null, salary_currency: null, salary_period: null, location, remote,
+    remote_eligibility: null, experience_level: null, employment_type: "Full-time",
+    url, source: url, posted_at, posted_at_utc: null, db_id});
+const ranked = (job, skills, overall, title, sk, loc) =>
+  ({job: {job, skills}, overall_score: overall, title_score: title, skills_score: sk,
+    experience_score: 0.5, location_score: loc});
+
+const ANALYSIS = {
+  market: {
+    jobs_analyzed: 34,
+    skill_coverage: {covered: 14, total: 20, coverage: 0.7},
+    top_skills: [
+      S("Python", 27, 0.79), S("SQL", 24, 0.71), S("Docker", 21, 0.62),
+      S("Amazon Web Services", 19, 0.56), S("React.js", 17, 0.5), S("FastAPI", 14, 0.41),
+      S("Kubernetes", 12, 0.35), S("PostgreSQL", 12, 0.35), S("TypeScript", 11, 0.32),
+      S("Git", 10, 0.29), S("Machine Learning", 9, 0.26), S("GraphQL", 8, 0.24),
+      S("Node.js", 7, 0.21), S("Pandas", 6, 0.18), S("Terraform", 5, 0.15)
+    ],
+    skill_gaps: [
+      S("Docker", 21, 0.62), S("Amazon Web Services", 19, 0.56),
+      S("Kubernetes", 12, 0.35), S("GraphQL", 8, 0.24), S("Terraform", 5, 0.15)
+    ],
+    user_skill_presence: [
+      S("Python", 27, 0.79), S("SQL", 24, 0.71), S("React.js", 17, 0.5),
+      S("FastAPI", 14, 0.41), S("PostgreSQL", 12, 0.35), S("TypeScript", 11, 0.32),
+      S("Git", 10, 0.29), S("Machine Learning", 9, 0.26), S("Node.js", 7, 0.21),
+      S("Pandas", 6, 0.18)
+    ]
+  },
+  ranked_jobs: [
+    ranked(posting(101, "Machine Learning Engineer", "Acme Technologies", "Nairobi, Kenya", false, "2 hours ago", "https://example.com/101"),
+      ["Python", "FastAPI", "PostgreSQL", "Machine Learning", "SQL", "Git", "Pandas", "Docker", "Amazon Web Services", "Kubernetes"],
+      0.92, 0.95, 0.9, 0.97),
+    ranked(posting(102, "Software Engineer", "Wave Mobile", null, true, "5 hours ago", "https://example.com/102"),
+      ["React.js", "TypeScript", "Node.js", "SQL", "Git", "GraphQL"],
+      0.88, 0.9, 0.86, 0.8),
+    ranked(posting(103, "AI Engineer", "Sable Labs", "Remote (EU)", true, "1 day ago", "https://example.com/103"),
+      ["Python", "FastAPI", "SQL", "Git", "Kubernetes", "Amazon Web Services", "Machine Learning"],
+      0.84, 0.85, 0.82, 0.78),
+    ranked(posting(104, "Backend Engineer", "Nomad Health", null, true, "1 day ago", "https://example.com/104"),
+      ["FastAPI", "SQL", "PostgreSQL", "Python", "Git", "Docker"],
+      0.81, 0.78, 0.85, 0.8),
+    ranked(posting(null, "Data Scientist", "Helios Analytics", "Nairobi, Kenya", false, "2 days ago", "https://example.com/105"),
+      ["Python", "Pandas", "SQL", "Machine Learning", "Amazon Web Services", "Docker"],
+      0.73, 0.7, 0.76, 0.97),
+    ranked(posting(106, "Fullstack Developer", "Kite Retail", null, true, "3 days ago", "https://example.com/106"),
+      ["React.js", "SQL", "Git", "Node.js", "GraphQL", "TypeScript", "Docker", "Terraform"],
+      0.64, 0.6, 0.66, 0.8)
+  ],
+  search: {
+    location: {country_code: "ke", country_name: "Kenya", city: "Nairobi", remote_only: false, source: "llm", warning: null},
+    scopes: ["local:ke", "remote:global"], widened_below_floor: false, minimum_jobs_floor: 6,
+    duplicates_removed: 4, remote_ineligible_removed: 7, jobs_returned: 41,
+    off_market_removed: 7, jobs_analyzed: 34,
+    providers: [
+      {provider: "remotive", scope: "remote:global", status: "ok", jobs: 18},
+      {provider: "jooble", scope: "local:ke", status: "ok", jobs: 14},
+      {provider: "themuse", scope: "remote:global", status: "ok", jobs: 9}
+    ]
+  }
+};
+
+const params = new URLSearchParams(location.search);
+if (params.get("clear")) {
+  localStorage.removeItem("jobradar");
+  localStorage.removeItem("jobradar:file");
+} else {
+  localStorage.setItem("jobradar", JSON.stringify(ANALYSIS));
+  localStorage.setItem("jobradar:file", "derrick-cv.pdf");
+}
+location.replace(params.get("to") || "/dashboard");
+</script>

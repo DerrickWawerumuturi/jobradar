@@ -12,6 +12,7 @@ import {Button} from "@/components/ui/button";
 import FormField from "@/components/FormField";
 import SkillsInput from "@/components/SkillsInput";
 import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 const SECTION_FIELDS: Record<string, (keyof FormValues)[]> = {
     basics: ["name", "title", "location", "experience_level"],
@@ -25,6 +26,7 @@ const SECTION_FIELDS: Record<string, (keyof FormValues)[]> = {
 const CVReviewForm = () => {
     const {cv, saveCv} = useCv()
     const [open, setOpen] = useState<string[]>(["basics"]);
+    const router = useRouter();
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -72,6 +74,7 @@ const CVReviewForm = () => {
 
     const onSubmit = ({...values}: FormValues) => {
         saveCv({...values})
+        router.push("/dashboard")
         toast.success("CV updated")
     }
 

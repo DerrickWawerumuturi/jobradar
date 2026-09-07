@@ -31,6 +31,7 @@
   --color-chart-hollow: var(--chart-hollow-fill);
   --color-accent-lime: var(--accent-lime);
   --color-accent-lime-ink: var(--accent-lime-ink);
+  --color-success: var(--success);
   --color-panel-green: var(--panel-green);
   --color-panel-green-border: var(--panel-green-border);
   --color-panel-green-ink: var(--panel-green-ink);
@@ -104,6 +105,8 @@
   --chart-hollow-fill: oklch(1 0 0 / 15%);
   --accent-lime: oklch(0.92 0.19 116);
   --accent-lime-ink: oklch(0.28 0.07 152);
+  /* Calm affirmative green — "you have this", statuses moving forward. */
+  --success: oklch(0.55 0.12 158);
   --panel-green: oklch(0.32 0.07 158);
   --panel-green-border: oklch(0.95 0.05 150 / 16%);
   --panel-green-grid: oklch(0.95 0.06 150 / 8%);
@@ -179,6 +182,8 @@
   /* The Search-Party yellow-green annotation accent (≈ #d8f34a). */
   --accent-lime: oklch(0.92 0.19 116);
   --accent-lime-ink: oklch(0.28 0.07 152);
+  /* Calm affirmative green — "you have this", statuses moving forward. */
+  --success: oklch(0.70 0.12 158);
   /* Deep green editorial chart panel + its own ink/grid/frame scale. */
   --panel-green: oklch(0.32 0.07 158);
   --panel-green-border: oklch(0.95 0.05 150 / 16%);
@@ -339,6 +344,19 @@
     input, select, textarea {
       font-size: 16px;
     }
+  }
+
+  /* Cards that bend toward you a little on hover. */
+  .tilt-card {
+    transition: transform 220ms ease, box-shadow 220ms ease;
+    transform-style: preserve-3d;
+  }
+  .tilt-card:hover {
+    transform: perspective(700px) rotateX(4deg) rotateY(-3deg) translateY(-2px);
+    box-shadow: 0 10px 24px oklch(0 0 0 / 30%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tilt-card, .tilt-card:hover { transition: none; transform: none; box-shadow: none; }
   }
 
   /* Scrollable strips that don't show a scrollbar. */

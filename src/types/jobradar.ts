@@ -72,6 +72,50 @@ export interface JobPosting {
     posted_at: string | null;
     /** The provider's absolute publication time, where one is offered. */
     posted_at_utc: string | null;
+    /**
+     * Our own jobs.id, attached after the scan is persisted. Null when
+     * persistence was disabled or the write failed — bookmarking needs it,
+     * so a null here means the posting can't be saved.
+     */
+    db_id?: number | null;
+}
+
+export type ApplicationStatus =
+    | "saved" | "applied" | "screening" | "interview" | "offer"
+    | "rejected" | "withdrawn";
+
+/** One row of GET /dashboard/applications. */
+export interface ApplicationRow {
+    id: number;
+    /** Optional until the backend adds a.job_id to the list select. */
+    job_id?: number | null;
+    title: string | null;
+    company: string | null;
+    match_score: number | string | null;
+    status: ApplicationStatus;
+    /** When it first left "saved", not necessarily when it was applied to. */
+    applied_at: string | null;
+    last_status_at: string;
+    /** The CV as it was when the job was saved. */
+    cv_snapshot?: CvBreakdown | null;
+    /** Joined from the jobs table once the backend widens the list select. */
+    url?: string | null;
+    location?: string | null;
+    remote?: boolean | null;
+    provider?: string | null;
+}
+
+export interface BookmarkResult {
+    bookmarked: boolean;
+    application_id: number | null;
+}
+
+export interface ApplicationEvent {
+    from_status: ApplicationStatus | null;
+    to_status: ApplicationStatus;
+    occurred_at: string;
+    scheduled_for: string | null;
+    note: string | null;
 }
 
 /** The posting plus the skills the backend extracted from its description. */
