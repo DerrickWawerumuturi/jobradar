@@ -160,6 +160,15 @@ class BookmarkRequest(BaseModel):
     cv_snapshot: dict | None = None
 
 
+class ManualApplicationRequest(BaseModel):
+    title: str
+    company: str | None = None
+    url: str | None = None
+    location: str | None = None
+    status: Literal["saved", "applied"] = "applied"
+    cv_snapshot: dict | None = None
+
+
 class TransitionRequest(BaseModel):
     to_status: Literal[
         "applied", "screening", "interview", "offer", "rejected", "withdrawn"

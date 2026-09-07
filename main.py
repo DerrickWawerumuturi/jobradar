@@ -15,7 +15,7 @@ from src.database.services.applications import (
 )
 from src.database.services.ingestion import user_ingestion
 from src.cv.current_user import current_user
-from src.Agent.utils.types import CVQuery, BookmarkRequest, TransitionRequest
+from src.Agent.utils.types import CVQuery, BookmarkRequest, ManualApplicationRequest, TransitionRequest
 from src.cv.dashboard import dashboard
 from src.Agent.Framework.JobRadarAgent import job_radar_agent
 
@@ -47,7 +47,12 @@ ALLOWED_ORIGINS = [
 # Vercel gives every preview deployment its own hostname, so they cannot be
 # enumerated. Set ALLOWED_ORIGIN_REGEX to admit them, e.g.
 #   ALLOWED_ORIGIN_REGEX=https://.*\.vercel\.app
-ALLOWED_ORIGIN_REGEX = os.getenv("ALLOWED_ORIGIN_REGEX") or None
+# Default admits private-LAN dev origins (a phone on the same wifi opening
+# the dev server via 192.168.x.x). Production overrides via the env var.
+ALLOWED_ORIGIN_REGEX = (
+    os.getenv("ALLOWED_ORIGIN_REGEX")
+    or r"http://(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}):3000"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -155,6 +160,21 @@ async def toggle_bookmark(body: BookmarkRequest, user=Depends(current_user)):
         match_score=body.match_score,
         cv_snapshot=body.cv_snapshot,
     )
+
+
+@app.post("/dashboard/applications/manual")
+async def add_manual_application(body: ManualApplicationRequest, user=Depends(current_user)):
+    application_id = await run_in_threadpool(
+        application_service.add_manual,
+        user,
+        title=body.title,
+        company=body.company,
+        url=body.url,
+        location=body.location,
+        status=body.status,
+        cv_snapshot=body.cv_snapshot,
+    )
+    return {"application_id": application_id}
 
 
 @app.get("/dashboard/applications")

@@ -27,10 +27,16 @@ values (%s, %s, %s, %s, %s, %s)
 """
 
 GET_LIST_FOR_USER = """
-select a.id, a.title, a.company, a.match_score, a.status, a.applied_at, a.last_status_at
+select a.id, a.job_id, a.title, a.company, a.match_score, a.status,
+       a.applied_at, a.last_status_at, a.cv_snapshot,
+       coalesce(j.url, a.url)           as url,
+       coalesce(j.location, a.location) as location,
+       j.remote,
+       coalesce(j.provider, 'manual')   as provider
 from application a
+left join jobs j on j.id = a.job_id
 where a.user_id = %s
-order by a.last_status_at desc 
+order by a.last_status_at desc
 """
 
 GET_TIMELINE = """
@@ -52,11 +58,25 @@ delete from application
 where id = %s and user_id = %s
 """
 
+CREATE_MANUAL = """
+insert into application (user_id, job_id, title, company, source, cv_snapshot, url, location)
+values (%s, null, %s, %s, 'manual', %s, %s, %s)
+returning id
+"""
+
+
 def create(conn, user_id, job_id, title, company, source, match_score, cv_snapshot) -> int:
     with conn.cursor() as cur:
         cur.execute(CREATE_APPLICATION,
                     (user_id, job_id, title, company, source, match_score, Jsonb(cv_snapshot) if cv_snapshot else None,))
         return cur.fetchone()["id"]
+
+def create_manual(conn, user_id, title, company, cv_snapshot, url, location) -> int:
+    with conn.cursor() as cur:
+        cur.execute(CREATE_MANUAL,
+                    (user_id, title, company, Jsonb(cv_snapshot) if cv_snapshot else None, url, location,))
+        return cur.fetchone()["id"]
+
 
 def current_status(conn, user_id, application_id) -> str | None:
     with conn.cursor() as cur:

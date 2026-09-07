@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 
 from psycopg.errors import ForeignKeyViolation
 from src.database.repositories.application_repository import (
-    create, current_status, list_for_user, update_status, insert_event,
-    find_by_user_and_job, delete, timeline,
+    create, create_manual, current_status, list_for_user, update_status,
+    insert_event, find_by_user_and_job, delete, timeline,
 )
 from src.database.session import connection
-from src.database.repositories.user_repository import get_user_id
+from src.database.repositories.user_repository import get_user_id, upsert_user
 
 
 
@@ -26,12 +26,15 @@ class BookmarkNotRemovable(Exception):
 
 
 def _getuser(conn, payload):
-    user_id = get_user_id(
-        conn,
-        payload["sub"],
-    )
+    sub = payload.get("sub")
+    if not sub:
+        raise UserNotFound("token carries no subject")
+
+    user_id = get_user_id(conn, sub)
     if user_id is None:
-        raise UserNotFound(f"User not found, user id is None: {user_id}")
+        # First authenticated touch — provision on the spot, exactly as
+        # PUT /cv does, instead of failing until a CV is saved.
+        user_id = upsert_user(conn, sub, payload.get("email"), payload.get("name"), None)
     return user_id
 
 
@@ -112,6 +115,25 @@ class ApplicationIngestionService:
                 scheduled_for,
                 note,
             )
+
+    def add_manual(self, payload, title, company=None, url=None, location=None,
+                   status="applied", cv_snapshot=None) -> int:
+        # Created as `saved` first so the event trail always starts at the
+        # beginning, then moved if the user already applied.
+        occurred_at = datetime.now(timezone.utc)
+        with connection() as conn:
+            user_id = _getuser(conn, payload)
+
+            application_id = create_manual(
+                conn, user_id, title, company, cv_snapshot, url, location
+            )
+            insert_event(conn, application_id, None, INITIAL_STATUS, occurred_at, None, None)
+
+            if status != INITIAL_STATUS:
+                update_status(conn, application_id, status, occurred_at)
+                insert_event(conn, application_id, INITIAL_STATUS, status, occurred_at, None, None)
+
+            return application_id
 
     def list_applications(self, payload) -> list[dict] | None:
         with connection() as conn:
