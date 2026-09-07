@@ -13,7 +13,7 @@ const CONFIGURED_API = (
 
 /**
  * A phone on the LAN opening the dev server via 192.168.x.x can't reach the
- * dev machine's loopback — swap in the page's own hostname in that case.
+ * dev machine's loopback, swap in the page's own hostname in that case.
  */
 export const API_BASE_URL = (() => {
     if (typeof window === "undefined") return CONFIGURED_API;
@@ -69,7 +69,7 @@ async function request<T>(path: string, init: RequestInit, timeoutMs: number, la
         return await response.json();
     } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
-            throw new Error(`${label} timed out. The API may be starting up — try again.`);
+            throw new Error(`${label} timed out. The API may be starting up, try again.`);
         }
         throw error;
     } finally {
@@ -135,13 +135,27 @@ export async  function GetCV(): Promise<CvBreakdown | null> {
    }
 }
 
+/** The stored scan travels with the account, like the CV. */
+export function StoreAnalysis(analysis: JobRadarAnalysis, fileName: string | null): Promise<unknown> {
+    return putJson("/analysis", {analysis, file_name: fileName}, SAVE_TIMEOUT_MS, "Analysis save");
+}
+
+export async function GetAnalysis(): Promise<{ data: JobRadarAnalysis; file_name: string | null } | null> {
+    try {
+        return await getJson("/analysis", CV_TIMEOUT_MS, "Analysis fetch");
+    } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return null;
+        throw err;
+    }
+}
+
 export interface BookmarkPayload {
     job_id: number;
     title?: string | null;
     company?: string | null;
     /** 0-100 display value, stored as-is. */
     match_score?: number | null;
-    /** The CV at save time — what this application was matched with. */
+    /** The CV at save time, what this application was matched with. */
     cv_snapshot?: CvBreakdown | null;
 }
 
@@ -159,7 +173,7 @@ export interface ManualApplicationPayload {
     cv_snapshot?: CvBreakdown | null;
 }
 
-/** An application the user made outside JobRadar — no scanned job behind it. */
+/** An application the user made outside JobRadar, no scanned job behind it. */
 export function CreateManualApplication(payload: ManualApplicationPayload): Promise<{ application_id: number }> {
     return postJson("/dashboard/applications/manual", payload, SAVE_TIMEOUT_MS, "Add application");
 }

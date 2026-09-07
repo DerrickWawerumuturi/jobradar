@@ -81,7 +81,7 @@ const SkillCoverage = ({coverage}: SkillCoverageProps) => {
                     </p>
                     <p className={"text-sm text-muted-foreground"}>
                         This measures overlap with the skills these particular postings ask
-                        for most. A low number points at what to learn next — it is not a
+                        for most. A low number points at what to learn next, it is not a
                         measure of how employable you are.
                     </p>
                 </div>
@@ -90,8 +90,8 @@ const SkillCoverage = ({coverage}: SkillCoverageProps) => {
             <PanelNote
                 points={[
                     <>The ring is this market&apos;s top skills split in two: the warm part is what your CV already covers, the faint part is what&apos;s missing.</>,
-                    <>The middle number says the same thing as a percentage — 60% would mean 6 of every 10 top skills.</>,
-                    <>It only compares you against this batch of postings — a low number is a to-learn list, not a verdict on you.</>
+                    <>The middle number says the same thing as a percentage, 60% would mean 6 of every 10 top skills.</>,
+                    <>It only compares you against this batch of postings, a low number is a to-learn list, not a verdict on you.</>
                 ]}
             />
         </section>

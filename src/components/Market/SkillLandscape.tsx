@@ -40,8 +40,8 @@ const GOLDEN_RATIO_CONJUGATE = 0.6180339887498949;
 
 /**
  * Spread points vertically so equal-frequency skills don't sit on top of each
- * other. A golden-ratio (low-discrepancy) sequence over the index — derived,
- * never randomised, so the layout is stable across re-renders — puts
+ * other. A golden-ratio (low-discrepancy) sequence over the index, derived,
+ * never randomised, so the layout is stable across re-renders, puts
  * consecutive demand ranks far apart vertically and reads as an organic
  * scatter rather than a rigid grid. `phase` decorrelates the two series.
  */
@@ -225,7 +225,7 @@ function LandscapeDot({cx, cy, payload, hollow, colour, label, flip}: DotShapePr
  * Deliberately one axis, not two. `job_count` and `frequency` are the same
  * measurement (frequency = job_count / jobs_analyzed), so plotting one against
  * the other would only ever draw a straight line. The real second dimension in
- * this data is categorical — whether the skill is on the user's CV — so it is
+ * this data is categorical, whether the skill is on the user's CV, so it is
  * encoded as filled vs hollow, with the vertical axis used purely to stop
  * equal-frequency points overlapping.
  */
@@ -240,7 +240,7 @@ const SkillLandscape = ({userSkills, gaps}: SkillLandscapeProps) => {
     );
 
     /*
-     * Direct labels are capped to the most-demanded few — with ~35 points,
+     * Direct labels are capped to the most-demanded few, with ~35 points,
      * labelling everything collides; everything else stays in the tooltip.
      * The single most-demanded missing skill gets the lime callout instead.
      */
@@ -271,7 +271,7 @@ const SkillLandscape = ({userSkills, gaps}: SkillLandscapeProps) => {
             <PanelHeader
                 title={"Market skill landscape"}
                 qualifier={""}
-                lead={"Every dot is one skill — the further right it sits, the more jobs ask for it"}
+                lead={"Every dot is one skill, the further right it sits, the more jobs ask for it"}
             />
 
             <div className={"h-[340px] w-full"}>
@@ -387,9 +387,9 @@ const SkillLandscape = ({userSkills, gaps}: SkillLandscapeProps) => {
 
             <PanelNote
                 points={[
-                    <>Each dot is one skill — the further right it sits, the more of these postings ask for it (a dot at 40% means 4 in 10 jobs).</>,
+                    <>Each dot is one skill, the further right it sits, the more of these postings ask for it (a dot at 40% means 4 in 10 jobs).</>,
                     <>Solid orange dots are skills already on your CV; lime rings are ones you don&apos;t have yet.</>,
-                    <>Up and down positions mean nothing — they only keep dots from covering each other.</>,
+                    <>Up and down positions mean nothing, they only keep dots from covering each other.</>,
                     <>The lime tag marks the most-wanted skill missing from your CV. Hover any dot for its exact numbers.</>
                 ]}
             />

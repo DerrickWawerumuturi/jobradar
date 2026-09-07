@@ -37,7 +37,7 @@ interface ApplicationsContextValue {
     /** Keyed by job_id, for correlating opportunity rows. */
     byJobId: Map<number, ApplicationRow>;
     counts: Record<ApplicationStatus, number>;
-    /** job_ids with a save/remove in flight — gate re-clicks, not rendering. */
+    /** job_ids with a save/remove in flight, gate re-clicks, not rendering. */
     pending: Set<number>;
     toggleSave: (job: SaveTarget) => void;
     /** Bookmarks every job not yet tracked; one toast. */
@@ -55,7 +55,7 @@ const nowIso = () => new Date().toISOString();
 
 /*
  * Every mutation is optimistic: the list changes and toasts immediately, the
- * API call runs behind it, and refresh() reconciles afterwards — replacing
+ * API call runs behind it, and refresh() reconciles afterwards, replacing
  * temp rows with real ids on success, or reverting the UI on failure.
  */
 export function ApplicationsProvider({children}: { children: React.ReactNode }) {
@@ -91,7 +91,7 @@ export function ApplicationsProvider({children}: { children: React.ReactNode }) 
         try {
             await run();
         } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Something went wrong — reverting");
+            toast.error(err instanceof Error ? err.message : "Something went wrong, reverting");
         } finally {
             await refresh();
         }
@@ -142,7 +142,7 @@ export function ApplicationsProvider({children}: { children: React.ReactNode }) 
             toast(`Removed ${job.role ?? "job"} from your pipeline`);
         } else {
             setApps((prev) => [tempRow(job, "saved"), ...prev]);
-            toast(`Saved ${job.role ?? "job"} — it's in your pipeline now`);
+            toast(`Saved ${job.role ?? "job"}, it's in your pipeline now`);
         }
         markPending([job.jobId], true);
         void sync(() => ToggleBookmark(bookmarkPayload(job)))
@@ -172,7 +172,7 @@ export function ApplicationsProvider({children}: { children: React.ReactNode }) 
     const markApplied = useCallback((job: SaveTarget) => {
         const existing = byJobId.get(job.jobId);
         if (existing) {
-            // Still settling from an optimistic save — the real id isn't known yet.
+            // Still settling from an optimistic save, the real id isn't known yet.
             if (existing.id < 0) return;
             transition(existing.id, "applied");
             return;

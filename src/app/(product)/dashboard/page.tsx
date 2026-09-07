@@ -126,7 +126,7 @@ export default function OverviewPage() {
             </header>
 
             {!analysis ? (
-                <EmptyScan message={"Your dashboard fills itself from a scan — upload your CV and JobRadar maps the market around it."} />
+                <EmptyScan message={"Your dashboard fills itself from a scan. Upload your CV and JobRadar maps the market around it."} />
             ) : (
                 <>
                     <div className={"grid grid-cols-2 gap-3 lg:grid-cols-4"}>
@@ -232,7 +232,7 @@ export default function OverviewPage() {
                                 )
                             }) : (
                                 <p className={"text-sm text-muted-foreground"}>
-                                    No significant gaps — your CV covers what this market keeps asking for.
+                                    No significant gaps. Your CV covers what this market keeps asking for.
                                 </p>
                             )}
                         </Panel>

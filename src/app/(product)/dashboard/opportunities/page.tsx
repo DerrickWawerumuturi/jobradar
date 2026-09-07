@@ -72,7 +72,7 @@ function Opportunities() {
 
             {!analysis ? (
                 <div className={"px-4 py-8 sm:px-8"}>
-                    <EmptyScan message={"No scan yet — upload your CV and JobRadar maps the market around it."} />
+                    <EmptyScan message={"No scan yet. Upload your CV and JobRadar maps the market around it."} />
                 </div>
             ) : (
                 <>

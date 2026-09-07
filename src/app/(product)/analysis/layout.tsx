@@ -29,8 +29,8 @@ export default function AnalysisLayout({children}: LayoutProps<"/analysis">) {
 
     return (
         <div className={"mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 lg:px-8"}>
-            <header className={"flex flex-wrap items-center justify-between gap-4"}>
-                <nav className={"flex w-fit max-w-full flex-wrap gap-1 rounded-lg border border-border bg-card p-1"}>
+            <header className={"flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"}>
+                <nav className={"no-scrollbar flex w-full gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1 sm:w-fit"}>
                     {TABS.map((tab) => {
                         const active = pathname === tab.href;
                         return (
@@ -39,7 +39,7 @@ export default function AnalysisLayout({children}: LayoutProps<"/analysis">) {
                                 href={tab.href}
                                 aria-current={active ? "page" : undefined}
                                 className={cn(
-                                    "inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.12em] transition-colors",
+                                    "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.12em] transition-colors",
                                     active
                                         ? "bg-secondary text-foreground"
                                         : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"

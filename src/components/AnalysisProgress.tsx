@@ -78,7 +78,7 @@ const AnalysisProgress = () => {
 
             <p className={"text-sm text-muted-foreground"}>
                 {cold
-                    ? "Still on it — the first analysis of the day takes an extra minute to warm up. Yours is coming."
+                    ? "Still on it. The first analysis of the day takes an extra minute to warm up. Yours is coming."
                     : stage.message}
                 {" "}
             </p>

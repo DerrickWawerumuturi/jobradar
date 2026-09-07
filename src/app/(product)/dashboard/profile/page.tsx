@@ -17,7 +17,7 @@ export default function ProfilePage() {
                 <div className={"px-4 py-8 sm:px-8"}>
                     <div className={"flex flex-col items-center gap-3 rounded-lg border border-border bg-card/50 px-6 py-14 text-center"}>
                         <p className={"text-sm text-muted-foreground"}>
-                            No profile yet — it's built from your CV.
+                            No profile yet. It's built from your CV.
                         </p>
                         <Link
                             href={"/"}
@@ -30,7 +30,7 @@ export default function ProfilePage() {
             ) : (
                 <div className={"mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-8 sm:px-5"}>
                     <p className={"text-sm text-muted-foreground"}>
-                        This is the profile every match is scored against — keep it honest and current.
+                        This is the profile every match is scored against, so keep it honest and current.
                     </p>
                     <CVReviewForm />
                 </div>

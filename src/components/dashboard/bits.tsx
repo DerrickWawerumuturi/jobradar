@@ -220,7 +220,7 @@ export function EmptyScan({message}: { message: string }) {
         <div className={"flex flex-col items-center gap-3 rounded-lg border border-border bg-card/50 px-6 py-14 text-center"}>
             <p className={"text-sm text-muted-foreground"}>{message}</p>
             <Link
-                href={"/"}
+                href={"/dashboard/scan"}
                 className={"rounded-md bg-accent-lime px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.1em] text-accent-lime-ink transition-opacity hover:opacity-90"}
             >
                 Run a scan

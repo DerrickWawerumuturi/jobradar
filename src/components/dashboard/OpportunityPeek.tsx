@@ -86,7 +86,7 @@ export function BreakdownContent({row, inertScores, onClose}: BreakdownProps) {
                     ))}
                     {inertScores.size > 0 && (
                         <p className={"text-[11px] leading-relaxed text-muted-foreground/80"}>
-                            Dimmed scores are identical for every match in this scan — the postings
+                            Dimmed scores are identical for every match in this scan, so the postings
                             carry no data to compare them on.
                         </p>
                     )}
@@ -109,7 +109,7 @@ export function BreakdownContent({row, inertScores, onClose}: BreakdownProps) {
                     <div className={"mt-2 flex flex-wrap gap-1.5"}>
                         {row.missing.length > 0
                             ? row.missing.slice(0, GAP_LIMIT).map((skill) => <SkillTag key={skill} skill={skill} tone={"gap"} />)
-                            : <span className={"text-xs text-success"}>✓ none — your CV covers everything it lists</span>}
+                            : <span className={"text-xs text-success"}>✓ none, your CV covers everything it lists</span>}
                         {row.missing.length > GAP_LIMIT && (
                             <span className={"self-center text-[11px] text-muted-foreground"}>+{row.missing.length - GAP_LIMIT} more</span>
                         )}

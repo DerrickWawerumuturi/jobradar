@@ -34,21 +34,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://jobradar-frontend-pearl.vercel.app"),
   title: {
-    default: "Jobradar — see where you actually stand",
+    default: "Jobradar: your job market, mapped",
     template: "%s · Jobradar",
   },
   description:
-      "Upload your CV and Jobradar scans live job postings, shows the skills your market really wants, the ones you have, and the gaps worth closing — in about a minute.",
+      "Upload your CV and Jobradar scans live job postings, shows the skills your market really wants, the ones you have, and the gaps worth closing, all in about a minute.",
   openGraph: {
     type: "website",
     siteName: "Jobradar",
-    title: "Jobradar — see where you actually stand",
+    title: "Jobradar: your job market, mapped",
     description:
         "Your CV vs the live job market: most-wanted skills, your coverage, the gaps worth closing, and real postings ranked by fit.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jobradar — see where you actually stand",
+    title: "Jobradar: your job market, mapped",
     description:
         "Your CV vs the live job market: most-wanted skills, your coverage, the gaps worth closing, and real postings ranked by fit.",
   },

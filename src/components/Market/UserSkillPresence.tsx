@@ -15,7 +15,7 @@ interface UserSkillPresenceProps {
  * Answers: "how common are the skills I already have?"
  *
  * Deliberately a separate section from market demand rather than a second
- * series on that chart — these bars are the user's own skills, and the caption
+ * series on that chart, these bars are the user's own skills, and the caption
  * is what ties them back to the wider market.
  */
 const UserSkillPresence = ({userSkills, topSkills}: UserSkillPresenceProps) => {
@@ -54,9 +54,9 @@ const UserSkillPresence = ({userSkills, topSkills}: UserSkillPresenceProps) => {
 
                     <PanelNote
                         points={[
-                            <>Every skill here is already on your CV — the chart shows how much this market wants each one.</>,
+                            <>Every skill here is already on your CV, the chart shows how much this market wants each one.</>,
                             <>A long orange or red bar is one of your strongest cards: lots of employers ask for it and you have it.</>,
-                            <>A short yellow bar just means these particular postings rarely mention it — that says more about this market than about the skill.</>,
+                            <>A short yellow bar just means these particular postings rarely mention it, that says more about this market than about the skill.</>,
                             <>Hover a bar for the exact number of postings.</>
                         ]}
                     />

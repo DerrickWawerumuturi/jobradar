@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: "JobRadar",
         short_name: "JobRadar",
-        description: "Your CV vs the live job market — matches explained, gaps counted, applications tracked.",
+        description: "Your CV vs the live job market: matches explained, gaps counted, applications tracked.",
         start_url: "/dashboard",
         display: "standalone",
         background_color: "#131316",

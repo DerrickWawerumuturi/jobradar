@@ -251,7 +251,7 @@ function CvSnapshot({app}: { app: ApplicationRow }) {
                     </div>
                     <p className={"text-[11px] leading-relaxed text-muted-foreground"}>
                         This is the profile the {Math.round(Number(app.match_score ?? 0))}% match was
-                        computed against — it stays frozen even as your CV evolves.
+                        computed against. It stays frozen even as your CV evolves.
                     </p>
                 </div>
             </DialogContent>
@@ -300,7 +300,7 @@ function TrackJobMenu() {
                     </DropdownMenuItem>
                 )) : (
                     <p className={"px-2 py-2 text-xs text-muted-foreground"}>
-                        {analysis ? "Every current match is already tracked." : "Run a scan first — matches show up here."}
+                        {analysis ? "Every current match is already tracked." : "Run a scan first and matches show up here."}
                     </p>
                 )}
                 <DropdownMenuSeparator />
@@ -560,7 +560,7 @@ export default function ApplicationsPage() {
                                     />
                                 ) : sheetApp.status !== "saved" && (
                                     <p className={"ml-auto max-w-[55%] text-right text-[10.5px] leading-snug text-muted-foreground"}>
-                                        Sent applications keep their history — they can be closed, not deleted.
+                                        Sent applications keep their history, so they can be closed, not deleted.
                                     </p>
                                 )}
                             </div>

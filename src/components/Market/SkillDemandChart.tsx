@@ -23,7 +23,7 @@ const SkillDemandChart = ({skills}: SkillDemandChartProps) => {
 
             <PanelNote
                 points={[
-                    <>Each bar is one skill — the longer it is, the more jobs have it as a requirement.</>,
+                    <>Each bar is one skill, the longer it is, the more jobs have it as a requirement.</>,
                     <>The number at the end is the exact share: 40% means 4 in 10 postings ask for that skill.</>,
                     <>Yellow bars are requested less often; the closer to red, the hotter the skill is in this market.</>,
                     <>Hover a bar to see the actual number of job postings behind it.</>

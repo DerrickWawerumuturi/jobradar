@@ -86,7 +86,7 @@ export default function Sidebar() {
     const you: NavItem[] = [
         ...(analysis ? [{href: "/dashboard/market", label: "Market charts", icon: ActivityIcon}] : []),
         ...(cv ? [{href: "/dashboard/profile", label: "My profile", icon: UserIcon}] : []),
-        {href: "/", label: "New scan", icon: PlusIcon}
+        {href: "/dashboard/scan", label: "New scan", icon: PlusIcon}
     ];
 
     const isActive = (href: string) =>

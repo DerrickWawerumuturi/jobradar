@@ -3,10 +3,12 @@ import Annotation from "@/components/Annotation";
 import LandscapePreview from "@/components/LandscapePreview";
 import About from "@/components/About";
 import Faq from "@/components/Faq";
+import LandingRedirect from "@/components/LandingRedirect";
 
 export default function Home() {
   return (
       <div className={"flex min-h-screen flex-col overflow-x-clip"}>
+        <LandingRedirect />
         <main className={"flex flex-1 flex-col gap-14"}>
           <Hero />
           <div className={"flex flex-col gap-1"}>
@@ -29,7 +31,7 @@ export default function Home() {
                 Your market report is<br/>a minute away.
               </h2>
               <p className={"max-w-md text-sm text-muted-foreground"}>
-                One PDF in, a full read on your market out — what they want,
+                One PDF in, a full read on your market out: what they want,
                 what you have, and what to learn next.
               </p>
               <a

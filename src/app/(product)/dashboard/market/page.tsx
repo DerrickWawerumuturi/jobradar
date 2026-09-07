@@ -24,13 +24,13 @@ export default function MarketChartsPage() {
             <PageBar
                 title={"Market charts"}
                 meta={market
-                    ? `${market.jobs_analyzed.toLocaleString()} postings analyzed${fileName ? ` · ${fileName}` : ""}`
+                    ? `${market.jobs_analyzed.toLocaleString()} jobs analyzed${fileName ? ` · ${fileName}` : ""}`
                     : undefined}
             />
 
             {!market ? (
                 <div className={"px-4 py-8 sm:px-8"}>
-                    <EmptyScan message={"No scan yet — the charts draw themselves from real postings."} />
+                    <EmptyScan message={"No scan yet. The charts draw themselves from real postings."} />
                 </div>
             ) : (
                 <div className={"mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8 sm:px-8"}>

@@ -47,8 +47,8 @@ const BackendStatus = ({className}: { className?: string }) => {
 
     const title =
         state === "offline" ? `The analysis API is not reachable at ${HOST}`
-            : state === "waking" ? `Starting the API at ${HOST} — this takes about half a minute from cold`
-                : analyzing ? "Analysis in progress — the API is still responding"
+            : state === "waking" ? `Starting the API at ${HOST}, this takes about half a minute from cold`
+                : analyzing ? "Analysis in progress, the API is still responding"
                     : `Analysis API at ${HOST}`;
 
     return (

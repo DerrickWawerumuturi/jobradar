@@ -145,7 +145,7 @@ function JobRow({ranked, userSkillKeys, inertScores, topMatch}: {
                                 .join(" and ")}{" "}
                             {inertScores.size === 1 ? "scores are" : "scores are"} identical
                             for every match here, so they don&apos;t separate one job from
-                            another — the postings carry no data to compare on.
+                            another, the postings carry no data to compare on.
                         </p>
                     )}
 
@@ -222,7 +222,7 @@ const JobMatches = ({jobs, userSkills}: JobMatchesProps) => {
                     Job matches
                 </h2>
                 <p className={"font-mono text-xs text-muted-foreground"}>
-                    Job postings sorted by how well they fit your CV, best first —
+                    Job postings sorted by how well they fit your CV, best first,
                     click one to see why
                 </p>
             </div>
@@ -253,10 +253,10 @@ const JobMatches = ({jobs, userSkills}: JobMatchesProps) => {
 
             <PanelNote
                 points={[
-                    <>Each row is a real job posting — the big percentage is its overall fit with your CV, best matches first.</>,
+                    <>Each row is a real job posting, the big percentage is its overall fit with your CV, best matches first.</>,
                     <>Click a row to see the four scores behind that number: title, skills, experience and location.</>,
                     <>Highlighted chips are skills the posting wants that you already have; grey chips are ones your CV doesn&apos;t show.</>,
-                    <>Learning — or simply listing — the grey-chip skills would push a match higher.</>
+                    <>Learning, or simply listing, the grey-chip skills would push a match higher.</>
                 ]}
             />
         </section>

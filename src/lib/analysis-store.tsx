@@ -1,7 +1,9 @@
 'use client'
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {useSession} from "next-auth/react";
 import {JobRadarAnalysis} from "@/types/jobradar";
+import {GetAnalysis, StoreAnalysis} from "@/lib/api";
 
 const STORAGE_KEY = "jobradar";
 
@@ -33,12 +35,17 @@ function isAnalysis(value: unknown): value is JobRadarAnalysis {
  * must survive navigation between them.
  */
 export function AnalysisProvider({children}: { children: React.ReactNode }) {
+    const {status: authStatus} = useSession();
     const [analysis, setAnalysis] = useState<JobRadarAnalysis | null>(null);
     const [status, setStatus] = useState<AnalysisStatus>("idle");
     const [fileName, setFileName] = useState<string | null>(null);
     const [hydrated, setHydrated] = useState(false);
+    // Set once a scan finishes in THIS tab, so the server fetch below never
+    // overwrites a fresher local result with an older stored one.
+    const localIsFresh = useRef(false);
 
     useEffect(() => {
+        let local: JobRadarAnalysis | null = null;
         try {
             const cached = localStorage.getItem(STORAGE_KEY);
             if (cached) {
@@ -46,6 +53,7 @@ export function AnalysisProvider({children}: { children: React.ReactNode }) {
                 // A response cached from an older backend shape would crash the
                 // dashboard on mount, so anything unrecognised is discarded.
                 if (isAnalysis(parsed)) {
+                    local = parsed;
                     setAnalysis(parsed);
                     setStatus("ready");
                     setFileName(localStorage.getItem(`${STORAGE_KEY}:file`));
@@ -55,16 +63,42 @@ export function AnalysisProvider({children}: { children: React.ReactNode }) {
             }
         } catch (e) {
             console.error("Discarding unreadable cached analysis:", e);
-            localStorage.removeItem(STORAGE_KEY);
+            try { localStorage.removeItem(STORAGE_KEY) } catch {}
         } finally {
             setHydrated(true);
         }
-    }, []);
+
+        // The account's stored scan follows the user across browsers.
+        if (authStatus !== "authenticated") return;
+        let cancelled = false;
+        void (async () => {
+            const remote = await GetAnalysis().catch(() => undefined);
+            if (cancelled || localIsFresh.current) return;
+            if (remote && isAnalysis(remote.data)) {
+                setAnalysis(remote.data);
+                setStatus("ready");
+                setFileName(remote.file_name);
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(remote.data));
+                    if (remote.file_name) localStorage.setItem(`${STORAGE_KEY}:file`, remote.file_name);
+                } catch {}
+            } else if (remote === null && local) {
+                // Server has nothing, this browser does: migrate it up.
+                StoreAnalysis(local, localStorage.getItem(`${STORAGE_KEY}:file`))
+                    .catch((e) => console.error("Migrating local analysis failed:", e));
+            }
+        })();
+        return () => { cancelled = true };
+    }, [authStatus]);
 
     const save = useCallback((next: JobRadarAnalysis, name: string) => {
+        localIsFresh.current = true;
         setAnalysis(next);
         setFileName(name);
         setStatus("ready");
+        if (authStatus === "authenticated") {
+            StoreAnalysis(next, name).catch((e) => console.error("Could not store analysis:", e));
+        }
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
             localStorage.setItem(`${STORAGE_KEY}:file`, name);
@@ -72,7 +106,7 @@ export function AnalysisProvider({children}: { children: React.ReactNode }) {
             // Quota or private-mode failures must not lose the in-memory result.
             console.error("Could not cache analysis:", e);
         }
-    }, []);
+    }, [authStatus]);
 
     const clear = useCallback(() => {
         setAnalysis(null);

@@ -51,7 +51,7 @@ function GapRow({gap, jobsAnalyzed, leading}: {
 
             <p className={"text-xs text-muted-foreground"}>
                 Requested in {gap.job_count} of {jobsAnalyzed} postings analyzed
-                {leading && " — the most common skill missing from your CV"}.
+                {leading && ", the most common skill missing from your CV"}.
             </p>
         </li>
     )

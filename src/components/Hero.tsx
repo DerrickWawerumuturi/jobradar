@@ -77,7 +77,7 @@ const Hero = () => {
     };
 
     const points = [
-        "Which skills this market asks for — ranked by how often they appear.",
+        "Which skills this market asks for, ranked by how often they appear.",
         "Which of your skills carry weight, and which never come up.",
         "The specific gaps worth closing next, ordered by demand."
     ];
@@ -92,7 +92,7 @@ const Hero = () => {
                             Job-hunt intelligence
                         </p>
                         <h1 className={"font-heading text-4xl font-bold uppercase leading-[1.02] tracking-tight sm:text-5xl"}>
-                            See where you<br/>actually stand.
+                            Your market,<br/>mapped.
                         </h1>
                         <p className={"text-base text-muted-foreground"}>
                             Upload your CV and we&apos;ll scan live job postings, pull out

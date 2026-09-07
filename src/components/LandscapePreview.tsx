@@ -7,7 +7,7 @@ import {SkillStat} from "@/types/jobradar";
 /*
  * Hand-written sample of a frontend job market (~120 postings) so the landing
  * page can show the real landscape chart before anyone uploads a CV. Purely
- * illustrative — clearly tagged as sample data in the UI.
+ * illustrative, clearly tagged as sample data in the UI.
  */
 const SAMPLE_MINE: SkillStat[] = [
     {skill: "React", frequency: 0.78, job_count: 94},
@@ -36,7 +36,7 @@ const LandscapePreview = () => (
     <div className={"mx-auto flex w-full max-w-5xl flex-col gap-3 px-5"}>
         <p className={"text-center font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"}>
             <span className={"font-bold text-accent-lime"}>Preview</span>
-            {" "}· sample data — upload your CV to see your own market
+            {" "}· sample data, upload your CV to see your own market
         </p>
         <SkillLandscape userSkills={SAMPLE_MINE} gaps={SAMPLE_GAPS} />
     </div>

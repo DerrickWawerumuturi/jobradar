@@ -39,7 +39,7 @@ export default function GapsPage() {
 
             {!market ? (
                 <div className={"px-4 py-8 sm:px-8"}>
-                    <EmptyScan message={"No scan yet — demand numbers are counted from real postings, so run one first."} />
+                    <EmptyScan message={"No scan yet. Demand numbers come from real postings, so run one first."} />
                 </div>
             ) : (
                 <div className={"grid flex-1 items-start lg:grid-cols-[1.25fr_1fr]"}>
@@ -103,7 +103,7 @@ export default function GapsPage() {
                                 <p className={"mt-2 text-[13.5px] leading-relaxed text-muted-foreground"}>
                                     <b className={"text-foreground"}>{topGap.skill}</b> appears in{" "}
                                     <b className={"text-foreground"}>{Math.round(toPercent(topGap.frequency))}%</b> of
-                                    the jobs analyzed — the most-demanded skill your CV doesn&apos;t show.
+                                    the jobs analyzed, the most-demanded skill your CV doesn&apos;t show.
                                     {lift != null && <>
                                         {" "}Adding it lifts your profile coverage from{" "}
                                         <b className={"text-foreground"}>{Math.round(coverage)}% to {Math.round(lift)}%</b>.
@@ -122,7 +122,7 @@ export default function GapsPage() {
                                             <b className={"text-foreground"}>{Math.round(toPercent(stat.frequency))}%</b>
                                         </React.Fragment>
                                     ))}
-                                    {" "}of the jobs analyzed — your CV already carries the market&apos;s
+                                    {" "}of the jobs analyzed. Your CV already carries the market&apos;s
                                     most-wanted skills.
                                 </p>
                             </div>

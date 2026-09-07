@@ -37,7 +37,7 @@ const Page = () => {
                     </h2>
                     <p className={"max-w-sm text-sm text-muted-foreground"}>
                         Sign in and your profile and analyses stop living in one
-                        browser — they follow you to any device, any time.
+                        browser. They follow you to any device, any time.
                     </p>
                 </div>
 
@@ -77,7 +77,7 @@ const Page = () => {
                         <Link href={"/#upload"} className={"text-foreground underline underline-offset-4 hover:text-primary"}>
                             Try it with your CV first
                         </Link>
-                        {" "}— no account needed.
+                        {" "}(no account needed).
                     </p>
                 </div>
             </main>
