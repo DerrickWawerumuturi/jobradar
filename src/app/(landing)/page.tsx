@@ -5,9 +5,25 @@ import About from "@/components/About";
 import Faq from "@/components/Faq";
 import LandingRedirect from "@/components/LandingRedirect";
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Jobradar",
+  url: "https://jobradar-frontend-pearl.vercel.app",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description:
+      "Upload your CV and Jobradar scans live job postings, shows the skills your market really wants, the ones you have, and the gaps worth closing.",
+  offers: {"@type": "Offer", price: "0", priceCurrency: "USD"},
+};
+
 export default function Home() {
   return (
       <div className={"flex min-h-screen flex-col overflow-x-clip"}>
+        <script
+            type={"application/ld+json"}
+            dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}}
+        />
         <LandingRedirect />
         <main className={"flex flex-1 flex-col gap-14"}>
           <Hero />

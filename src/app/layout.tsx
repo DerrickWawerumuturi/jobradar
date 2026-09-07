@@ -33,9 +33,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jobradar-frontend-pearl.vercel.app"),
+  applicationName: "Jobradar",
   title: {
-    default: "Jobradar: your job market, mapped",
+    default: "Jobradar",
     template: "%s · Jobradar",
+  },
+  alternates: {
+    canonical: "/",
   },
   description:
       "Upload your CV and Jobradar scans live job postings, shows the skills your market really wants, the ones you have, and the gaps worth closing, all in about a minute.",
