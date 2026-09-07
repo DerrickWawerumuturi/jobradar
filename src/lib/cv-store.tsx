@@ -1,6 +1,7 @@
 'use client'
 
 import React, {createContext, useCallback, useContext, useMemo, useState, useEffect} from "react";
+import {useSession} from "next-auth/react";
 import { CvBreakdown } from "@/types/jobradar"
 import {GetCV, StoreCV} from "@/lib/api";
 
@@ -15,55 +16,53 @@ const CvContext = createContext<CvContextProps | null>(null)
 
 
 export default function CVProvider({children}: { children: React.ReactNode }) {
+    const {status: authStatus} = useSession();
     const [cv, setCv] = useState<CvBreakdown | null>(null);
 
     useEffect(() => {
         let cancelled = false;
 
         async function hydrate() {
-            const remote = await GetCV().catch(() => null)
+            // Local cache paints immediately — the server round-trip must
+            // never leave the app looking empty while it's in flight.
+            let cached: CvBreakdown | null = null;
+            try {
+                const raw = localStorage.getItem(CVKEY)
+                if (raw) cached = JSON.parse(raw)
+            } catch {
+                try { localStorage.removeItem(CVKEY) } catch {}
+            }
+            if (cached && !cancelled) setCv(cached)
+
+            if (authStatus !== "authenticated") return
+
+            // undefined = request failed (keep the cache), null = server has none.
+            const remote = await GetCV().catch(() => undefined)
             if (cancelled) return
             if (remote) {
-                setCv(remote);
-                localStorage.setItem(CVKEY, JSON.stringify(remote));
-                return
-            }
-
-            try {
-                const cached = localStorage.getItem(CVKEY)
-                if (cached) setCv(JSON.parse(cached))
-            } catch {
-                localStorage.removeItem(CVKEY)
+                setCv(remote)
+                try { localStorage.setItem(CVKEY, JSON.stringify(remote)) } catch {}
+            } else if (remote === null && cached) {
+                // Signed in, server empty, local draft exists — migrate it up
+                // so this account owns the CV from now on.
+                StoreCV(cached).catch((error) => console.error("Migrating local CV failed:", error))
             }
         }
 
         hydrate()
         return () => { cancelled = true }
-    }, []);
-
-
-    const getCv = useCallback(() => {
-        try {
-            GetCV().then((cv) => {
-                setCv(cv)
-            }).catch((err) => console.error(err));
-        } catch (e) {
-            console.error("No cv saved yet:", e);
-        }
-    }, [])
+    }, [authStatus]);
 
     const saveCv = useCallback((next: CvBreakdown) => {
         setCv(next)
-
+        // The server save must never depend on localStorage cooperating.
+        StoreCV(next).catch((error) => console.error("Error storing cv:", error))
         try {
             localStorage.setItem(CVKEY, JSON.stringify(next))
-            StoreCV(next).catch((error) => {
-                console.log("Error storing cv:", error);
-            })
         } catch (error) {
-            console.error("Error saving cv to storage",error)
+            console.error("Error caching cv:", error)
         }
-    }, [cv])
+    }, [])
 
     const clear = useCallback(
         () => {
@@ -73,7 +72,7 @@ export default function CVProvider({children}: { children: React.ReactNode }) {
 
     const value = useMemo<CvContextProps>(() =>
         ({cv, saveCv, clear})
-    , [cv, setCv, saveCv, setCv])
+    , [cv, saveCv, clear])
 
     return <CvContext.Provider value={value}>{children}</CvContext.Provider>
 }
