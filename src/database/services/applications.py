@@ -29,6 +29,11 @@ def _getuser(conn, payload):
     sub = payload.get("sub")
     if not sub:
         raise UserNotFound("token carries no subject")
+    # Google subjects are numeric. A UUID here is a stale frontend build
+    # minting random identities — refuse loudly rather than fork the user's
+    # data into a ghost account.
+    if not sub.isdigit():
+        raise UserNotFound("outdated app session — sign out and back in on the latest version")
 
     user_id = get_user_id(conn, sub)
     if user_id is None:
