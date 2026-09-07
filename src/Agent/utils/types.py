@@ -160,6 +160,11 @@ class BookmarkRequest(BaseModel):
     cv_snapshot: dict | None = None
 
 
+class AnalysisPayload(BaseModel):
+    analysis: dict
+    file_name: str | None = None
+
+
 class ManualApplicationRequest(BaseModel):
     title: str
     company: str | None = None

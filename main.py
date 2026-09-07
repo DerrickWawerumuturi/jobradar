@@ -15,7 +15,7 @@ from src.database.services.applications import (
 )
 from src.database.services.ingestion import user_ingestion
 from src.cv.current_user import current_user
-from src.Agent.utils.types import CVQuery, BookmarkRequest, ManualApplicationRequest, TransitionRequest
+from src.Agent.utils.types import AnalysisPayload, CVQuery, BookmarkRequest, ManualApplicationRequest, TransitionRequest
 from src.cv.dashboard import dashboard
 from src.Agent.Framework.JobRadarAgent import job_radar_agent
 
@@ -140,6 +140,26 @@ for exc, code in ((ApplicationNotFound, 404), (JobNotFound, 404),
         exc,
         lambda request, err, code=code: JSONResponse(status_code=code, content={"detail": str(err)}),
     )
+
+
+@app.put("/analysis")
+async def store_analysis(body: AnalysisPayload, user = Depends(current_user)):
+    try:
+        await run_in_threadpool(user_ingestion.store_analysis, user, body.analysis, body.file_name)
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=f"Error storing your analysis: {err}") from err
+
+
+@app.get("/analysis")
+async def get_analysis(user = Depends(current_user)):
+    try:
+        row = await run_in_threadpool(user_ingestion.fetch_analysis, user)
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=f"Error fetching your analysis: {err}") from err
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="No analysis saved yet")
+    return row
 
 
 @app.post("/auth/provision")

@@ -261,4 +261,19 @@ class CVIngestionService:
         with connection() as conn:
             return user_repository.get_cv(conn, payload["sub"])
 
+    def store_analysis(self, payload, data: dict, file_name):
+        with connection() as conn:
+            user_id = user_repository.upsert_user(
+                conn,
+                payload["sub"],
+                payload.get("email"),
+                payload.get("name"),
+                payload.get("image")
+            )
+            user_repository.save_analysis(conn, user_id, data, file_name)
+
+    def fetch_analysis(self, payload) -> dict | None:
+        with connection() as conn:
+            return user_repository.get_analysis(conn, payload["sub"])
+
 user_ingestion = CVIngestionService()
