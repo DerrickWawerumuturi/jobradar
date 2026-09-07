@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useMemo, useState} from 'react'
+import React, {useMemo, useRef, useState} from 'react'
 import Link from "next/link";
 import {AnimatePresence, motion, MotionConfig} from "motion/react";
 import {
@@ -317,8 +317,24 @@ function TrackJobMenu() {
 }
 
 export default function ApplicationsPage() {
-    const {apps, state, counts, refresh} = useApplications();
+    const {apps, state, counts, refresh, toggleSave} = useApplications();
     const [view, setView] = useState<ViewId>("all");
+
+    // Long-press on a row (touch only) opens the action sheet — the delete
+    // column is hidden on phones, this is its mobile home.
+    const [sheet, setSheet] = useState<ApplicationRow | null>(null);
+    const pressTimer = useRef<number | null>(null);
+    const startPress = (app: ApplicationRow) => {
+        pressTimer.current = window.setTimeout(() => setSheet(app), 450);
+    };
+    const cancelPress = () => {
+        if (pressTimer.current != null) {
+            clearTimeout(pressTimer.current);
+            pressTimer.current = null;
+        }
+    };
+    // Optimistic updates replace rows, so read the live one while open.
+    const sheetApp = sheet ? apps.find((a) => a.id === sheet.id) ?? sheet : null;
 
     const visible = useMemo(() => [...apps]
         .filter((app) => view === "all"
@@ -405,10 +421,15 @@ export default function ApplicationsPage() {
                                 </thead>
                                 <tbody>
                                     {visible.map((app) => (
-                                        <tr key={app.id} className={cn(
-                                            "transition-colors hover:bg-foreground/3",
-                                            CLOSED.includes(app.status) && "opacity-55"
-                                        )}>
+                                        <tr
+                                            key={app.id}
+                                            onTouchStart={() => startPress(app)}
+                                            onTouchEnd={cancelPress}
+                                            onTouchMove={cancelPress}
+                                            className={cn(
+                                                "transition-colors hover:bg-foreground/3",
+                                                CLOSED.includes(app.status) && "opacity-55"
+                                            )}>
                                             <td className={cn(GRID_TD, "pl-4 sm:pl-5")}>
                                                 {app.url ? (
                                                     <a
@@ -485,6 +506,68 @@ export default function ApplicationsPage() {
                     </p>
                 </>
             )}
+
+            <AnimatePresence>
+                {sheetApp && (
+                    <>
+                        <motion.div
+                            key={"sheet-backdrop"}
+                            initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}
+                            onClick={() => setSheet(null)}
+                            className={"fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"}
+                        />
+                        <motion.div
+                            key={"sheet"}
+                            initial={{y: "100%"}} animate={{y: 0}} exit={{y: "100%"}}
+                            transition={{type: "spring", bounce: 0.2, duration: 0.4}}
+                            className={"fixed inset-x-0 bottom-0 z-50 flex flex-col gap-4 rounded-t-2xl border-t border-input bg-popover p-5 pb-8"}
+                        >
+                            <div className={"mx-auto h-1 w-10 rounded-full bg-foreground/20"} />
+                            <div className={"flex items-center gap-3"}>
+                                <span className={"min-w-0 flex-1"}>
+                                    <span className={"block truncate font-medium"}>{sheetApp.title ?? "Untitled role"}</span>
+                                    <span className={"block truncate font-mono text-[11px] text-muted-foreground"}>{sheetApp.company ?? "—"}</span>
+                                </span>
+                                <ScoreChip value={sheetApp.match_score} />
+                            </div>
+                            <div className={"flex items-center gap-3"}>
+                                <span className={"font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"}>Status</span>
+                                <StatusDisclosure app={sheetApp} />
+                            </div>
+                            <div className={"flex items-center gap-3 border-t border-border pt-4"}>
+                                {sheetApp.url && (
+                                    <a
+                                        href={sheetApp.url}
+                                        target={"_blank"}
+                                        rel={"noreferrer noopener"}
+                                        className={"inline-flex items-center gap-1.5 rounded-md bg-accent-lime px-3.5 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-accent-lime-ink"}
+                                    >
+                                        View job <ArrowUpRightIcon className={"size-3"} />
+                                    </a>
+                                )}
+                                {sheetApp.status === "saved" && sheetApp.id > 0 && sheetApp.job_id != null ? (
+                                    <DeleteButton
+                                        className={"ml-auto"}
+                                        onConfirm={() => {
+                                            toggleSave({
+                                                jobId: sheetApp.job_id!,
+                                                role: sheetApp.title,
+                                                company: sheetApp.company,
+                                                match: Number(sheetApp.match_score) || null
+                                            });
+                                            setSheet(null);
+                                        }}
+                                    />
+                                ) : sheetApp.status !== "saved" && (
+                                    <p className={"ml-auto max-w-[55%] text-right text-[10.5px] leading-snug text-muted-foreground"}>
+                                        Sent applications keep their history — they can be closed, not deleted.
+                                    </p>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

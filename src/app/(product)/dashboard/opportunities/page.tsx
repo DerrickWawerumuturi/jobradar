@@ -67,7 +67,7 @@ function Opportunities() {
         <div className={"flex min-h-screen flex-col"}>
             <PageBar
                 title={"Opportunities"}
-                meta={analysis ? `${rows.length} postings · sorted by fit` : undefined}
+                meta={analysis ? `${rows.length} jobs · sorted by fit` : undefined}
             />
 
             {!analysis ? (
@@ -126,7 +126,7 @@ function Opportunities() {
                         )}
                         {visible.length > 0 && (
                             <p className={"px-1 pt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70"}>
-                                {shown.length} of {visible.length} postings shown · from your last scan
+                                {shown.length} of {visible.length} jobs shown · from your last scan
                             </p>
                         )}
                     </div>

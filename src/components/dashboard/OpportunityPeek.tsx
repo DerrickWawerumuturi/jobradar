@@ -130,7 +130,7 @@ export function BreakdownContent({row, inertScores, onClose}: BreakdownProps) {
                             rel={"noreferrer noopener"}
                             className={"inline-flex items-center gap-1.5 rounded-md bg-accent-lime px-3.5 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-accent-lime-ink transition-opacity hover:opacity-90"}
                         >
-                            View posting <ExternalLinkIcon className={"size-3"} />
+                            View job <ExternalLinkIcon className={"size-3"} />
                         </a>
                     )}
                     {state === "signed-out" ? (

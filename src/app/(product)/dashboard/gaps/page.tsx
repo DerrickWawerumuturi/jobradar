@@ -34,7 +34,7 @@ export default function GapsPage() {
         <div className={"flex min-h-screen flex-col"}>
             <PageBar
                 title={"What the market wants"}
-                meta={market ? `counted from ${market.jobs_analyzed} postings` : undefined}
+                meta={market ? `counted from ${market.jobs_analyzed} jobs` : undefined}
             />
 
             {!market ? (
@@ -89,7 +89,7 @@ export default function GapsPage() {
                                         <b className={"font-medium text-foreground"}>{demand.length}</b> count
                                     </td>
                                     <td className={GRID_FOOT}>{gapCount} gaps</td>
-                                    <td className={GRID_FOOT}>% of {market.jobs_analyzed} postings</td>
+                                    <td className={GRID_FOOT}>% of {market.jobs_analyzed} jobs</td>
                                     <td className={cn(GRID_FOOT, "hidden sm:table-cell")} />
                                 </tr>
                             </tfoot>
@@ -103,7 +103,7 @@ export default function GapsPage() {
                                 <p className={"mt-2 text-[13.5px] leading-relaxed text-muted-foreground"}>
                                     <b className={"text-foreground"}>{topGap.skill}</b> appears in{" "}
                                     <b className={"text-foreground"}>{Math.round(toPercent(topGap.frequency))}%</b> of
-                                    the postings analyzed — the most-demanded skill your CV doesn&apos;t show.
+                                    the jobs analyzed — the most-demanded skill your CV doesn&apos;t show.
                                     {lift != null && <>
                                         {" "}Adding it lifts your profile coverage from{" "}
                                         <b className={"text-foreground"}>{Math.round(coverage)}% to {Math.round(lift)}%</b>.
@@ -122,7 +122,7 @@ export default function GapsPage() {
                                             <b className={"text-foreground"}>{Math.round(toPercent(stat.frequency))}%</b>
                                         </React.Fragment>
                                     ))}
-                                    {" "}of the postings analyzed — your CV already carries the market&apos;s
+                                    {" "}of the jobs analyzed — your CV already carries the market&apos;s
                                     most-wanted skills.
                                 </p>
                             </div>

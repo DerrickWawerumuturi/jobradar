@@ -1,11 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, {useRef, useState} from 'react'
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {signOut, useSession} from "next-auth/react";
 import {
     ActivityIcon,
+    ChevronRightIcon,
     ClipboardListIcon,
     HomeIcon,
     LogOutIcon,
@@ -15,12 +16,20 @@ import {
     UserIcon,
     LucideIcon
 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 import {cn, initials} from "@/lib/utils";
 import {useAnalysis} from "@/lib/analysis-store";
 import {useCv} from "@/lib/cv-store";
 import {useApplications} from "@/lib/applications-store";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import InstallApp from "@/components/dashboard/InstallApp";
 
 interface NavItem {
     href: string;
@@ -59,6 +68,13 @@ export default function Sidebar() {
     const {analysis} = useAnalysis();
     const {cv} = useCv();
     const {apps} = useApplications();
+
+    const stripRef = useRef<HTMLElement>(null);
+    const [stripAtEnd, setStripAtEnd] = useState(false);
+    const onStripScroll = () => {
+        const el = stripRef.current;
+        if (el) setStripAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 8);
+    };
 
     const workspace: NavItem[] = [
         {href: "/dashboard", label: "Overview", icon: HomeIcon},
@@ -129,6 +145,7 @@ export default function Sidebar() {
                     <div className={"flex flex-col gap-0.5"}>
                         <p className={"px-2.5 pb-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"}>You</p>
                         {you.map((item) => <NavLink key={item.href} item={item} active={isActive(item.href)} />)}
+                        <InstallApp />
                     </div>
                 </nav>
 
@@ -142,23 +159,55 @@ export default function Sidebar() {
                         Jobradar<span className={"text-primary"}>.</span>
                     </Link>
                     {session?.user ? (
-                        <Avatar className={"size-7"}>
-                            <AvatarImage src={session.user.image ?? undefined} />
-                            <AvatarFallback className={"bg-primary text-[10px] text-white"}>
-                                {session.user.name ? initials(session.user.name) : "?"}
-                            </AvatarFallback>
-                        </Avatar>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger render={(props) => (
+                                <button {...props} aria-label={"Account"}>
+                                    <Avatar className={"size-7"}>
+                                        <AvatarImage src={session.user?.image ?? undefined} />
+                                        <AvatarFallback className={"bg-primary text-[10px] text-white"}>
+                                            {session.user?.name ? initials(session.user.name) : "?"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </button>
+                            )} />
+                            <DropdownMenuContent align={"end"} className={"w-56"}>
+                                <div className={"flex flex-col items-start gap-0.5 px-2 py-1.5"}>
+                                    <p className={"text-sm font-medium"}>{session.user.name}</p>
+                                    <p className={"text-xs text-muted-foreground"}>{session.user.email}</p>
+                                </div>
+                                <DropdownMenuSeparator />
+                                <InstallApp />
+                                <DropdownMenuItem
+                                    onClick={() => signOut({redirectTo: "/"})}
+                                    className={"cursor-pointer"}
+                                >
+                                    <LogOutIcon className={"size-4 opacity-70"} /> Sign out
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     ) : (
                         <Link href={"/sign-in"} className={"font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground"}>
                             Sign in
                         </Link>
                     )}
                 </div>
-                <nav className={"no-scrollbar flex gap-1 overflow-x-auto px-3 py-2"}>
-                    {[...workspace, ...you].map((item) => (
-                        <NavLink key={item.href} item={{...item, count: undefined}} active={isActive(item.href)} compact />
-                    ))}
-                </nav>
+                <div className={"relative"}>
+                    <nav
+                        ref={stripRef}
+                        onScroll={onStripScroll}
+                        className={"no-scrollbar flex gap-1 overflow-x-auto px-3 py-2"}
+                    >
+                        {[...workspace, ...you].map((item) => (
+                            <NavLink key={item.href} item={{...item, count: undefined}} active={isActive(item.href)} compact />
+                        ))}
+                    </nav>
+                    {/* More tabs live off-screen — fade + pulse until scrolled there. */}
+                    {!stripAtEnd && (
+                        <div aria-hidden className={"pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center justify-end bg-gradient-to-l from-background via-background/80 to-transparent pr-1"}>
+                            <ChevronRightIcon className={"size-4 animate-pulse text-primary"} />
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     )

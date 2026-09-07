@@ -40,7 +40,7 @@ function Stat({label, value, unit, sub, tone, cards}: {
     const lime = tone === "lime";
     return (
         <div title={sub} className={"group flex flex-col items-center gap-1"}>
-            <div className={"relative"}>
+            <div className={"relative max-sm:-my-4 max-sm:scale-[0.78]"}>
                 <Folder color={STAT_TONES[tone]} size={"xs"} pages={cards} aria-hidden />
                 <p className={cn(
                     "pointer-events-none absolute inset-x-0 bottom-8 text-center font-mono text-[24px] font-bold leading-none tabular-nums",
@@ -81,7 +81,7 @@ export default function OverviewPage() {
     const coverageCards: FolderPage[] = byDemand(market?.user_skill_presence ?? [])
         .slice(0, 3).map((stat) => ({
             title: short(stat.skill),
-            lines: [`${Math.round(toPercent(stat.frequency))}% demand`, `${stat.job_count} postings`]
+            lines: [`${Math.round(toPercent(stat.frequency))}% demand`, `${stat.job_count} jobs`]
         }));
     const strongCards: FolderPage[] = rows.filter((row) => row.match >= STRONG_MATCH)
         .slice(0, 3).map((row) => ({
@@ -91,7 +91,7 @@ export default function OverviewPage() {
     const providerCards: FolderPage[] = (analysis?.search?.providers ?? [])
         .filter((p) => p.provider).slice(0, 3).map((p) => ({
             title: short(p.provider!),
-            lines: [`${p.jobs ?? "—"} postings`, ...(p.scope ? [short(p.scope, 13)] : [])]
+            lines: [`${p.jobs ?? "—"} jobs`, ...(p.scope ? [short(p.scope, 13)] : [])]
         }));
     const pipelineCards: FolderPage[] = [...apps]
         .sort((a, b) => new Date(b.last_status_at).getTime() - new Date(a.last_status_at).getTime())
@@ -142,12 +142,12 @@ export default function OverviewPage() {
                             tone={"lime"}
                             label={"Strong matches"}
                             value={strong}
-                            sub={`postings at ${STRONG_MATCH}%+ fit, of ${rows.length} ranked against your CV`}
+                            sub={`jobs at ${STRONG_MATCH}%+ fit, of ${rows.length} ranked against your CV`}
                             cards={strongCards}
                         />
                         <Stat
                             tone={"navy"}
-                            label={"Postings analyzed"}
+                            label={"Jobs analyzed"}
                             value={market!.jobs_analyzed}
                             sub={providers.length ? `across ${providers.join(" · ")}` : "in your last scan"}
                             cards={providerCards}
@@ -222,7 +222,7 @@ export default function OverviewPage() {
                                         <div className={"mb-1.5 flex items-baseline justify-between"}>
                                             <span className={"font-mono text-xs font-medium"}>{gap.skill}</span>
                                             <span className={"font-mono text-[10.5px] tabular-nums text-muted-foreground"}>
-                                                {Math.round(percent)}% of postings
+                                                {Math.round(percent)}% of jobs
                                             </span>
                                         </div>
                                         <div className={"h-1.5 overflow-hidden rounded-full bg-foreground/8"}>
