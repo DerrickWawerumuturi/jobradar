@@ -38,7 +38,14 @@ jobs:
             -o none
 
       - name: Smoke test
+        # A fresh revision can take a minute to pull and take traffic —
+        # poll rather than judge on one shot.
         run: |
-          sleep 20
-          curl --fail --max-time 30 \
-            https://jobradar-backend.agreeabledune-79b95957.southafricanorth.azurecontainerapps.io/health
+          for i in $(seq 1 12); do
+            if curl --silent --fail --max-time 10 \
+              https://jobradar-backend.agreeabledune-79b95957.southafricanorth.azurecontainerapps.io/health; then
+              echo " — healthy after ${i}0s"; exit 0
+            fi
+            sleep 10
+          done
+          echo "backend never became healthy"; exit 1
