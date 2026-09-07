@@ -28,11 +28,14 @@ jobs:
           docker push "$IMAGE"
 
       - name: Update container app
+        # -o none: the default output dumps the full app config, env values
+        # included — never printable on a public repo's Actions log.
         run: |
           az containerapp update \
             -n jobradar-backend \
             -g jobradar-rg \
-            --image jobradarregistry.azurecr.io/jobradar:${GITHUB_SHA::8}
+            --image jobradarregistry.azurecr.io/jobradar:${GITHUB_SHA::8} \
+            -o none
 
       - name: Smoke test
         run: |
