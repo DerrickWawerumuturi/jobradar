@@ -189,6 +189,28 @@ export function TransitionApplication(
     return postJson(`/dashboard/applications/${id}/transition`, { to_status }, SAVE_TIMEOUT_MS, "Status change");
 }
 
+async function deleteJson<T>(path: string, label: string): Promise<T> {
+    return request<T>(path, {
+        method: "DELETE",
+        headers: {Authorization: `Bearer ${await getApiToken()}`},
+    }, SAVE_TIMEOUT_MS, label);
+}
+
+/** Deletes a terminal application (saved, withdrawn, rejected) and its history. */
+export function DeleteApplication(id: number): Promise<{ deleted: number }> {
+    return deleteJson(`/dashboard/applications/${id}`, "Delete");
+}
+
+/** Wipes cv, analyses and applications but keeps the account itself. */
+export function DeleteMyData(): Promise<{ deleted: boolean }> {
+    return deleteJson("/account/data", "Data deletion");
+}
+
+/** Removes the account and everything under it: cv, analyses, applications. */
+export function DeleteAccount(): Promise<{ deleted: boolean }> {
+    return deleteJson("/account", "Account deletion");
+}
+
 export function ApplicationHistory(id: number): Promise<ApplicationEvent[]> {
     return getJson(`/dashboard/applications/${id}/history`, SAVE_TIMEOUT_MS, "History");
 }

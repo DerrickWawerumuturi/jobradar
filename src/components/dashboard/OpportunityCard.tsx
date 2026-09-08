@@ -6,7 +6,8 @@ import {XIcon} from "lucide-react";
 
 import {OpportunityRow} from "@/lib/dashboard-data";
 import {useApplications} from "@/lib/applications-store";
-import {Monogram, ScoreChip, StatusChip, TagChip} from "@/components/dashboard/bits";
+import {ScoreChip, StatusChip, TagChip} from "@/components/dashboard/bits";
+import CompanyLogo from "@/components/dashboard/CompanyLogo";
 import {BreakdownContent} from "@/components/dashboard/OpportunityPeek";
 
 interface OpportunityCardProps {
@@ -43,7 +44,7 @@ export default function OpportunityCard({row, inertScores, open, onOpen, onClose
                 className={"flex w-full flex-col gap-2.5 rounded-xl border border-input bg-secondary/40 p-4 text-left transition-colors hover:border-foreground/25"}
             >
                 <span className={"flex w-full items-center gap-2.5"}>
-                    <Monogram label={row.company ?? row.role} />
+                    <CompanyLogo company={row.company ?? row.role} url={row.url} />
                     <span className={"min-w-0 flex-1"}>
                         <span className={"block truncate text-[14px] font-medium"}>{row.role}</span>
                         <span className={"block truncate font-mono text-[10.5px] text-muted-foreground"}>

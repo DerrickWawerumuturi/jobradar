@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Sidebar from "@/components/dashboard/Sidebar";
+import StaleSessionBanner from "@/components/dashboard/StaleSessionBanner";
 import {ApplicationsProvider} from "@/lib/applications-store";
 
 /**
@@ -16,6 +17,7 @@ export default function DashboardLayout({children}: LayoutProps<"/dashboard">) {
                 {/* Table pages go full-bleed; Overview centers itself. Wide
                     content must scroll inside its own container, never the page. */}
                 <div className={"min-w-0 flex-1 overflow-x-clip"}>
+                    <StaleSessionBanner />
                     {children}
                 </div>
             </div>

@@ -2,19 +2,20 @@
 
 import React, {useMemo, useRef, useState} from 'react'
 import Link from "next/link";
-import {AnimatePresence, motion, MotionConfig} from "motion/react";
+import {AnimatePresence, motion} from "motion/react";
+import {toast} from "sonner";
+import StatusDisclosure from "@/components/dashboard/StatusDisclosure";
 import {
     ArrowUpRightIcon,
     BuildingIcon,
     CalendarIcon,
-    ChevronDownIcon,
     CircleDashedIcon,
     ClockIcon,
     FileTextIcon,
     GaugeIcon,
     MapPinIcon,
     PlusIcon,
-    RssIcon,
+    GlobeIcon,
     TypeIcon
 } from "lucide-react";
 
@@ -24,6 +25,8 @@ import {CLOSED, PIPELINE, STATUS_LABEL, useApplications} from "@/lib/application
 import {useAnalysis} from "@/lib/analysis-store";
 import {timeAgo, toOpportunities} from "@/lib/dashboard-data";
 import {GRID_TD, GridTh, Monogram, PageBar, ScoreChip, SectionLabel, StatusChip, Toolbar, ViewChip} from "@/components/dashboard/bits";
+import CompanyLogo from "@/components/dashboard/CompanyLogo";
+import SourceBadge from "@/components/dashboard/SourceBadge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -46,76 +49,6 @@ const VIEWS = [
     {id: "closed", label: "Closed"}
 ] as const;
 type ViewId = typeof VIEWS[number]["id"];
-
-/**
- * Watermelon's filter-disclosure feel: the chip morphs into a small panel of
- * status chips that spring in staggered; pick one and it snaps back.
- */
-function StatusDisclosure({app}: { app: ApplicationRow }) {
-    const {transition} = useApplications();
-    const [open, setOpen] = useState(false);
-    const [anchor, setAnchor] = useState({left: 0, top: 0});
-    const layoutId = `status-${app.id}`;
-
-    const openAt = (event: React.MouseEvent<HTMLButtonElement>) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        setAnchor({
-            left: Math.min(rect.left - 6, window.innerWidth - 200),
-            top: Math.min(rect.top - 6, window.innerHeight - 250)
-        });
-        setOpen(true);
-    };
-
-    const select = (status: Exclude<ApplicationStatus, "saved">) => {
-        transition(app.id, status);
-        setTimeout(() => setOpen(false), 180);
-    };
-
-    return (
-        <MotionConfig transition={{type: "spring", bounce: 0.25, duration: 0.5}}>
-            <AnimatePresence mode={"popLayout"} initial={false}>
-                {open ? (
-                    <motion.div
-                        key={"open"}
-                        layoutId={layoutId}
-                        initial={{opacity: 0}}
-                        animate={{opacity: 1}}
-                        exit={{opacity: 0, transition: {duration: 0}}}
-                        style={{position: "fixed", left: anchor.left, top: anchor.top}}
-                        className={"z-50 flex w-46 flex-col gap-0.5 rounded-xl border border-input bg-popover p-1.5 shadow-2xl"}
-                    >
-                        {TRANSITIONS.filter((status) => status !== app.status).map((status, index) => (
-                            <motion.button
-                                key={status}
-                                initial={{opacity: 0, scale: 1.06, y: 14}}
-                                animate={{opacity: 1, scale: 1, y: 0}}
-                                whileTap={{scale: 0.97}}
-                                transition={{type: "spring", stiffness: 240, damping: 20, delay: index * 0.04}}
-                                onClick={() => select(status)}
-                                className={"flex w-full rounded-lg px-2 py-1.5 text-left hover:bg-foreground/5"}
-                            >
-                                <StatusChip status={status} />
-                            </motion.button>
-                        ))}
-                    </motion.div>
-                ) : (
-                    <motion.button
-                        key={"closed"}
-                        layoutId={layoutId}
-                        disabled={app.id < 0}
-                        onClick={openAt}
-                        aria-label={"Change status"}
-                        className={"inline-flex items-center gap-1 disabled:opacity-50"}
-                    >
-                        <StatusChip status={app.status} />
-                        <ChevronDownIcon className={"size-3 text-muted-foreground"} />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-            {open && <div aria-hidden className={"fixed inset-0 z-40"} onClick={() => setOpen(false)} />}
-        </MotionConfig>
-    )
-}
 
 const INPUT = "rounded-md border border-input bg-transparent px-3 py-2 text-[13px] outline-none placeholder:text-muted-foreground/50 focus:border-foreground/30";
 
@@ -291,7 +224,7 @@ function TrackJobMenu() {
                         })}
                         className={"cursor-pointer gap-2.5"}
                     >
-                        <Monogram label={row.company ?? row.role} />
+                        <CompanyLogo company={row.company ?? row.role} url={row.url} />
                         <span className={"min-w-0 flex-1"}>
                             <span className={"block truncate text-[13px]"}>{row.role}</span>
                             <span className={"block truncate font-mono text-[10.5px] text-muted-foreground"}>{row.company ?? "—"}</span>
@@ -317,7 +250,7 @@ function TrackJobMenu() {
 }
 
 export default function ApplicationsPage() {
-    const {apps, state, counts, refresh, toggleSave} = useApplications();
+    const {apps, state, counts, refresh, remove} = useApplications();
     const [view, setView] = useState<ViewId>("all");
 
     // Long-press on a row (touch only) opens the action sheet — the delete
@@ -411,7 +344,7 @@ export default function ApplicationsPage() {
                                         <GridTh icon={BuildingIcon} className={"hidden min-w-32 md:table-cell"}>Company</GridTh>
                                         <GridTh icon={GaugeIcon}>Match</GridTh>
                                         <GridTh icon={MapPinIcon} className={"hidden lg:table-cell"}>Location</GridTh>
-                                        <GridTh icon={RssIcon} className={"hidden md:table-cell"}>Source</GridTh>
+                                        <GridTh icon={GlobeIcon} className={"hidden md:table-cell"}>Source</GridTh>
                                         <GridTh icon={CircleDashedIcon}>Status</GridTh>
                                         <GridTh icon={FileTextIcon} className={"hidden md:table-cell"}>CV</GridTh>
                                         <GridTh icon={CalendarIcon} className={"hidden xl:table-cell"}>First moved</GridTh>
@@ -453,7 +386,7 @@ export default function ApplicationsPage() {
                                             <td className={cn(GRID_TD, "hidden md:table-cell")}>
                                                 {app.company ? (
                                                     <span className={"inline-flex items-center gap-2"}>
-                                                        <Monogram label={app.company} />
+                                                        <CompanyLogo company={app.company} url={app.url} />
                                                         <span className={"truncate text-[12.5px]"}>{app.company}</span>
                                                     </span>
                                                 ) : <span className={"text-muted-foreground/50"}>—</span>}
@@ -463,12 +396,7 @@ export default function ApplicationsPage() {
                                                 {app.remote ? "Remote" : app.location ?? "—"}
                                             </td>
                                             <td className={cn(GRID_TD, "hidden md:table-cell")}>
-                                                {app.provider ? (
-                                                    <span className={"inline-flex items-center gap-1.5"}>
-                                                        <Monogram label={app.provider} className={"size-4 text-[9px]"} />
-                                                        <span className={"font-mono text-[11px] lowercase text-muted-foreground"}>{app.provider}</span>
-                                                    </span>
-                                                ) : <span className={"text-muted-foreground/50"}>—</span>}
+                                                <SourceBadge url={app.url} provider={app.provider} />
                                             </td>
                                             <td className={GRID_TD}><StatusDisclosure app={app} /></td>
                                             <td className={cn(GRID_TD, "hidden md:table-cell")}><CvSnapshot app={app} /></td>
@@ -545,24 +473,18 @@ export default function ApplicationsPage() {
                                         View job <ArrowUpRightIcon className={"size-3"} />
                                     </a>
                                 )}
-                                {sheetApp.status === "saved" && sheetApp.id > 0 && sheetApp.job_id != null ? (
-                                    <DeleteButton
-                                        className={"ml-auto"}
-                                        onConfirm={() => {
-                                            toggleSave({
-                                                jobId: sheetApp.job_id!,
-                                                role: sheetApp.title,
-                                                company: sheetApp.company,
-                                                match: Number(sheetApp.match_score) || null
-                                            });
+                                <DeleteButton
+                                    className={"ml-auto"}
+                                    onConfirm={() => {
+                                        const deletable = sheetApp.status === "saved" || CLOSED.includes(sheetApp.status);
+                                        if (deletable) {
+                                            remove(sheetApp);
                                             setSheet(null);
-                                        }}
-                                    />
-                                ) : sheetApp.status !== "saved" && (
-                                    <p className={"ml-auto max-w-[55%] text-right text-[10.5px] leading-snug text-muted-foreground"}>
-                                        Sent applications keep their history, so they can be closed, not deleted.
-                                    </p>
-                                )}
+                                        } else {
+                                            toast.error("Active applications keep their history. Move it to Withdrawn first, then delete.");
+                                        }
+                                    }}
+                                />
                             </div>
                         </motion.div>
                     </>

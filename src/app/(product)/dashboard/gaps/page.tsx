@@ -1,14 +1,75 @@
 'use client'
 
-import React, {useMemo} from 'react'
-import {HashIcon, TrendingUpIcon, TypeIcon, UserIcon} from "lucide-react";
+import React, {useMemo, useState} from 'react'
+import {useRouter} from "next/navigation";
+import {BriefcaseIcon, HashIcon, TrendingUpIcon, TypeIcon} from "lucide-react";
 
 import {cn} from "@/lib/utils";
 import {useAnalysis} from "@/lib/analysis-store";
-import {byDemand, coveragePercent, significantGaps, skillKey, toPercent, toSkillKeys} from "@/lib/market";
-import {EmptyScan, GRID_FOOT, GRID_TD, GridTh, PageBar, SectionLabel, TagChip} from "@/components/dashboard/bits";
+import {byDemand, skillKey, toPercent, toSkillKeys} from "@/lib/market";
+import SkillBadge from "@/components/dashboard/SkillBadge";
+import {DemandMeter, EmptyScan, GRID_FOOT, GRID_TD, GridTh, PageBar, ScoreChip} from "@/components/dashboard/bits";
+import CompanyLogo from "@/components/dashboard/CompanyLogo";
+import {OpportunityRow, toOpportunities} from "@/lib/dashboard-data";
 
 const DEMAND_LIMIT = 15;
+const ROLE_CHIPS = 3;
+
+/* Attio's multi-colored category chips: each role gets a stable soft tint,
+ * so the same role reads as the same color all the way down the table. */
+const CHIP_TONES = [
+    "bg-success/15 text-success",
+    "bg-chart-ramp-2/15 text-chart-ramp-2",
+    "bg-accent-lime/15 text-accent-lime",
+    "bg-primary/15 text-primary",
+    "bg-chart-ramp-1/15 text-chart-ramp-1",
+    "bg-foreground/8 text-foreground/80"
+];
+
+/** Chip = a real job. Hover shows its card; click opens the breakdown. */
+function JobChip({row}: { row: OpportunityRow }) {
+    const router = useRouter();
+    const [card, setCard] = useState<{ left: number; top: number } | null>(null);
+    const tone = CHIP_TONES[
+        [...row.role].reduce((sum, char) => sum + char.charCodeAt(0), 0) % CHIP_TONES.length
+    ];
+    const label = row.role.length > 22 ? `${row.role.slice(0, 21)}…` : row.role;
+
+    return (
+        <span
+            onMouseEnter={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setCard({
+                    left: Math.min(rect.left, window.innerWidth - 300),
+                    top: Math.min(rect.bottom + 8, window.innerHeight - 90)
+                });
+            }}
+            onMouseLeave={() => setCard(null)}
+        >
+            <button
+                onClick={() => router.push(`/dashboard/opportunities?sel=${encodeURIComponent(row.key)}`)}
+                className={cn("inline-flex cursor-pointer whitespace-nowrap rounded-[4px] px-1.5 py-px font-mono text-[10.5px] transition-opacity hover:opacity-80", tone)}
+            >
+                {label}
+            </button>
+            {card && (
+                <span
+                    style={{position: "fixed", left: card.left, top: card.top}}
+                    className={"z-50 flex w-72 items-center gap-2.5 rounded-xl border border-input bg-popover p-3 shadow-2xl"}
+                >
+                    <CompanyLogo company={row.company ?? row.role} url={row.url} />
+                    <span className={"min-w-0 flex-1"}>
+                        <span className={"block truncate text-[13px] font-medium"}>{row.role}</span>
+                        <span className={"block truncate font-mono text-[10.5px] text-muted-foreground"}>
+                            {[row.company, row.location].filter(Boolean).join(" · ")}
+                        </span>
+                    </span>
+                    <ScoreChip value={row.match} />
+                </span>
+            )}
+        </span>
+    )
+}
 
 export default function GapsPage() {
     const {analysis, hydrated} = useAnalysis();
@@ -16,19 +77,24 @@ export default function GapsPage() {
     const market = analysis?.market;
     const haveKeys = useMemo(() => toSkillKeys(market?.user_skill_presence ?? []), [market]);
     const demand = useMemo(() => byDemand(market?.top_skills ?? []).slice(0, DEMAND_LIMIT), [market]);
-    const topGap = useMemo(() => significantGaps(market?.skill_gaps ?? [])[0] ?? null, [market]);
+
+    // Which scanned jobs actually list each skill, best match first, one chip
+    // per distinct role title.
+    const jobsBySkill = useMemo(() => {
+        const map = new Map<string, OpportunityRow[]>();
+        if (!analysis) return map;
+        for (const row of toOpportunities(analysis)) {
+            for (const skill of [...row.have, ...row.missing]) {
+                const key = skillKey(skill);
+                const jobs = map.get(key) ?? [];
+                if (!jobs.some((j) => j.role === row.role)) jobs.push(row);
+                map.set(key, jobs);
+            }
+        }
+        return map;
+    }, [analysis]);
 
     if (!hydrated) return null;
-
-    const strongest = byDemand(market?.user_skill_presence ?? []).slice(0, 2);
-    const gapCount = demand.filter((stat) => !haveKeys.has(skillKey(stat.skill))).length;
-
-    const coverage = market ? coveragePercent(market.skill_coverage) : 0;
-    // The coverage lift is only claimable when the gap is one of the skills
-    // coverage is measured against.
-    const lift = market && topGap && market.top_skills.some((s) => skillKey(s.skill) === skillKey(topGap.skill))
-        ? toPercent((market.skill_coverage.covered + 1) / market.skill_coverage.total)
-        : null;
 
     return (
         <div className={"flex min-h-screen flex-col"}>
@@ -42,95 +108,73 @@ export default function GapsPage() {
                     <EmptyScan message={"No scan yet. Demand numbers come from real postings, so run one first."} />
                 </div>
             ) : (
-                <div className={"grid flex-1 items-start lg:grid-cols-[1.25fr_1fr]"}>
-                    <div className={"overflow-x-auto"}>
-                        <table className={"w-full border-collapse"}>
-                            <thead>
-                                <tr>
-                                    <GridTh icon={TypeIcon} className={"w-[28%] pl-4 sm:pl-5"}>Skill</GridTh>
-                                    <GridTh icon={UserIcon} className={"w-[14%]"}>You</GridTh>
-                                    <GridTh icon={TrendingUpIcon} className={"w-[42%]"}>Demand</GridTh>
-                                    <GridTh icon={HashIcon} className={"hidden w-[16%] sm:table-cell"}>Postings</GridTh>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {demand.map((stat) => {
-                                    const have = haveKeys.has(skillKey(stat.skill));
-                                    const percent = toPercent(stat.frequency);
-                                    return (
-                                        <tr key={stat.skill} className={"transition-colors hover:bg-foreground/3"}>
-                                            <td className={cn(GRID_TD, "pl-4 font-mono text-xs font-medium sm:pl-5")}>{stat.skill}</td>
-                                            <td className={GRID_TD}>
-                                                <TagChip tone={have ? "have" : "gap"}>{have ? "✓ yes" : "△ gap"}</TagChip>
-                                            </td>
-                                            <td className={GRID_TD}>
-                                                <div className={"flex items-center gap-2.5"}>
-                                                    <div className={"h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/8"}>
-                                                        <div
-                                                            className={cn("h-full rounded-full", have ? "bg-success" : "bg-primary")}
-                                                            style={{width: `${percent}%`}}
-                                                        />
-                                                    </div>
-                                                    <span className={"w-10 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground"}>
-                                                        {Math.round(percent)}%
+                <div className={"flex-1 overflow-x-auto"}>
+                    <table className={"w-full border-collapse"}>
+                        <thead>
+                            <tr>
+                                <GridTh className={"w-[5%] pl-4 text-right sm:pl-5"}>#</GridTh>
+                                <GridTh icon={TypeIcon} className={"w-[22%]"}>Skill</GridTh>
+                                <GridTh icon={BriefcaseIcon} className={"hidden w-[47%] md:table-cell"}>Roles asking</GridTh>
+                                <GridTh icon={TrendingUpIcon} className={"w-[16%]"}>Demand</GridTh>
+                                <GridTh icon={HashIcon} className={"hidden w-[10%] sm:table-cell"}>Jobs</GridTh>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {demand.map((stat, index) => {
+                                const have = haveKeys.has(skillKey(stat.skill));
+                                const percent = toPercent(stat.frequency);
+                                const jobs = jobsBySkill.get(skillKey(stat.skill)) ?? [];
+                                return (
+                                    <tr key={stat.skill} className={"transition-colors hover:bg-foreground/3"}>
+                                        <td className={cn(GRID_TD, "pl-4 text-right font-mono text-[10.5px] tabular-nums text-muted-foreground/60 sm:pl-5")}>
+                                            {index + 1}
+                                        </td>
+                                        <td className={GRID_TD}>
+                                            <span className={"flex items-center gap-2.5"}>
+                                                <SkillBadge skill={stat.skill} tone={have ? "have" : "gap"} />
+                                                <span className={"truncate text-[13px] font-medium"}>{stat.skill}</span>
+                                            </span>
+                                        </td>
+                                        <td className={cn(GRID_TD, "hidden md:table-cell")}>
+                                            <span className={"flex flex-wrap items-center gap-1.5"}>
+                                                {jobs.slice(0, ROLE_CHIPS).map((job) => <JobChip key={job.key} row={job} />)}
+                                                {jobs.length > ROLE_CHIPS && (
+                                                    <span className={"font-mono text-[10px] text-muted-foreground/70"}>
+                                                        +{jobs.length - ROLE_CHIPS}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className={cn(GRID_TD, "hidden font-mono text-[11px] tabular-nums text-muted-foreground sm:table-cell")}>
-                                                {stat.job_count}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td className={cn(GRID_FOOT, "pl-4 sm:pl-5")}>
-                                        <b className={"font-medium text-foreground"}>{demand.length}</b> count
-                                    </td>
-                                    <td className={GRID_FOOT}>{gapCount} gaps</td>
-                                    <td className={GRID_FOOT}>% of {market.jobs_analyzed} jobs</td>
-                                    <td className={cn(GRID_FOOT, "hidden sm:table-cell")} />
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <div className={"flex flex-col gap-4 border-t border-border p-4 sm:p-6 lg:min-h-full lg:border-l lg:border-t-0"}>
-                        {topGap && (
-                            <div className={"rounded-lg border border-primary/35 bg-primary/6 px-5 py-4"}>
-                                <SectionLabel className={"text-primary"}>If you learn one thing</SectionLabel>
-                                <p className={"mt-2 text-[13.5px] leading-relaxed text-muted-foreground"}>
-                                    <b className={"text-foreground"}>{topGap.skill}</b> appears in{" "}
-                                    <b className={"text-foreground"}>{Math.round(toPercent(topGap.frequency))}%</b> of
-                                    the jobs analyzed, the most-demanded skill your CV doesn&apos;t show.
-                                    {lift != null && <>
-                                        {" "}Adding it lifts your profile coverage from{" "}
-                                        <b className={"text-foreground"}>{Math.round(coverage)}% to {Math.round(lift)}%</b>.
-                                    </>}
-                                </p>
-                            </div>
-                        )}
-                        {strongest.length > 0 && (
-                            <div className={"rounded-lg border border-success/35 bg-success/6 px-5 py-4"}>
-                                <SectionLabel className={"text-success"}>Already paying off</SectionLabel>
-                                <p className={"mt-2 text-[13.5px] leading-relaxed text-muted-foreground"}>
-                                    {strongest.map((stat, index) => (
-                                        <React.Fragment key={stat.skill}>
-                                            {index > 0 && " and "}
-                                            <b className={"text-foreground"}>{stat.skill}</b> is asked for in{" "}
-                                            <b className={"text-foreground"}>{Math.round(toPercent(stat.frequency))}%</b>
-                                        </React.Fragment>
-                                    ))}
-                                    {" "}of the jobs analyzed. Your CV already carries the market&apos;s
-                                    most-wanted skills.
-                                </p>
-                            </div>
-                        )}
-                        <p aria-hidden className={"-rotate-2 self-start font-hand text-xl text-primary/90"}>
-                            every number here is counted from real postings, not vibes
-                        </p>
-                    </div>
+                                                )}
+                                                {jobs.length === 0 && <span className={"text-muted-foreground/50"}>—</span>}
+                                            </span>
+                                        </td>
+                                        <td className={GRID_TD}>
+                                            <div className={"flex items-center gap-2.5"}>
+                                                <DemandMeter percent={percent} tone={have ? "have" : "gap"} />
+                                                <span className={"w-10 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground"}>
+                                                    {Math.round(percent)}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className={cn(GRID_TD, "hidden font-mono text-[11px] tabular-nums text-muted-foreground sm:table-cell")}>
+                                            {stat.job_count}
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td className={cn(GRID_FOOT, "pl-4 sm:pl-5")} />
+                                <td className={GRID_FOOT}>
+                                    <b className={"font-medium text-foreground"}>{demand.length}</b> count
+                                </td>
+                                <td className={cn(GRID_FOOT, "hidden md:table-cell")}>hover a role, click it for the full breakdown</td>
+                                <td className={GRID_FOOT}>
+                                    <span className={"text-success"}>green</span> on your CV · <span className={"text-primary"}>orange</span> missing
+                                </td>
+                                <td className={cn(GRID_FOOT, "hidden sm:table-cell")} />
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             )}
         </div>

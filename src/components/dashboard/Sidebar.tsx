@@ -1,12 +1,14 @@
 'use client'
 
-import React, {useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {signOut, useSession} from "next-auth/react";
 import {
     ActivityIcon,
     ChevronRightIcon,
+    PanelLeftCloseIcon,
+    PanelLeftOpenIcon,
     ClipboardListIcon,
     HomeIcon,
     LogOutIcon,
@@ -38,13 +40,20 @@ interface NavItem {
     count?: number;
 }
 
-function NavLink({item, active, compact}: { item: NavItem; active: boolean; compact?: boolean }) {
+function NavLink({item, active, compact, collapsed}: {
+    item: NavItem;
+    active: boolean;
+    compact?: boolean;
+    collapsed?: boolean;
+}) {
     return (
         <Link
             href={item.href}
             aria-current={active ? "page" : undefined}
+            title={collapsed ? item.label : undefined}
             className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+                "flex items-center gap-2.5 rounded-md py-1.5 text-[13px] transition-colors",
+                collapsed ? "justify-center px-0" : "px-2.5",
                 compact && "shrink-0 whitespace-nowrap",
                 active
                     ? "bg-foreground/8 font-medium text-foreground"
@@ -52,8 +61,8 @@ function NavLink({item, active, compact}: { item: NavItem; active: boolean; comp
             )}
         >
             <item.icon className={cn("size-4 shrink-0", active ? "text-foreground" : "opacity-70")} />
-            {item.label}
-            {item.count != null && item.count > 0 && (
+            {!collapsed && item.label}
+            {!collapsed && item.count != null && item.count > 0 && (
                 <span className={"ml-auto font-mono text-[10px] tabular-nums text-muted-foreground"}>
                     {item.count}
                 </span>
@@ -68,6 +77,15 @@ export default function Sidebar() {
     const {analysis} = useAnalysis();
     const {cv} = useCv();
     const {apps} = useApplications();
+
+    const [collapsed, setCollapsed] = useState(false);
+    useEffect(() => {
+        try { setCollapsed(localStorage.getItem("sidebar-collapsed") === "1") } catch {}
+    }, []);
+    const toggleCollapsed = () => setCollapsed((prev) => {
+        try { localStorage.setItem("sidebar-collapsed", prev ? "0" : "1") } catch {}
+        return !prev;
+    });
 
     const stripRef = useRef<HTMLElement>(null);
     const [stripAtEnd, setStripAtEnd] = useState(false);
@@ -93,59 +111,99 @@ export default function Sidebar() {
         href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 
     const account = session?.user ? (
-        <div className={"flex items-center gap-2.5 border-t border-border px-3 py-3"}>
-            <Avatar className={"size-7"}>
-                <AvatarImage src={session.user.image ?? undefined} />
-                <AvatarFallback className={"bg-primary text-[10px] text-white"}>
-                    {session.user.name ? initials(session.user.name) : "?"}
-                </AvatarFallback>
-            </Avatar>
-            <div className={"min-w-0 flex-1"}>
-                <p className={"truncate text-xs font-medium"}>{session.user.name}</p>
-                <p className={"truncate text-[10.5px] text-muted-foreground"}>{session.user.email}</p>
-            </div>
-            <button
-                aria-label={"Sign out"}
-                title={"Sign out"}
-                onClick={() => signOut({redirectTo: "/"})}
-                className={"text-muted-foreground transition-colors hover:text-foreground"}
-            >
-                <LogOutIcon className={"size-4"} />
-            </button>
+        <div className={"border-t border-border p-2"}>
+            <DropdownMenu>
+                <DropdownMenuTrigger render={(props) => (
+                    <button
+                        {...props}
+                        aria-label={"Account menu"}
+                        className={cn(props.className, "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-foreground/5")}
+                    >
+                        <Avatar className={"size-7"}>
+                            <AvatarImage src={session.user?.image ?? undefined} />
+                            <AvatarFallback className={"bg-primary text-[10px] text-white"}>
+                                {session.user?.name ? initials(session.user.name) : "?"}
+                            </AvatarFallback>
+                        </Avatar>
+                        {!collapsed && (
+                            <span className={"min-w-0 flex-1"}>
+                                <span className={"block truncate text-xs font-medium"}>{session.user?.name}</span>
+                                <span className={"block truncate text-[10.5px] text-muted-foreground"}>{session.user?.email}</span>
+                            </span>
+                        )}
+                        {!collapsed && <ChevronRightIcon className={"size-3.5 -rotate-90 text-muted-foreground"} />}
+                    </button>
+                )} />
+                <DropdownMenuContent align={"start"} className={"w-56"}>
+                    <DropdownMenuItem
+                        render={(props) => (
+                            <Link {...props} href={"/dashboard/profile"} className={cn(props.className, "cursor-pointer")}>
+                                <UserIcon className={"size-4 opacity-70"} /> My profile
+                            </Link>
+                        )}
+                    />
+                    <InstallApp />
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={() => signOut({redirectTo: "/"})}
+                        className={"cursor-pointer"}
+                    >
+                        <LogOutIcon className={"size-4 opacity-70"} /> Sign out
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     ) : (
         <div className={"border-t border-border px-3 py-3"}>
             <Link
                 href={"/sign-in"}
-                className={"block rounded-md border border-border px-3 py-1.5 text-center font-mono text-xs uppercase tracking-[0.12em] transition-colors hover:border-primary/40"}
+                title={"Sign in"}
+                className={cn(
+                    "block rounded-md border border-border py-1.5 text-center font-mono text-xs uppercase tracking-[0.12em] transition-colors hover:border-primary/40",
+                    collapsed ? "px-1" : "px-3"
+                )}
             >
-                Sign in
+                {collapsed ? "→" : "Sign in"}
             </Link>
         </div>
     );
 
     return (
         <>
-            {/* Desktop: the Notion-style rail. */}
-            <aside className={"sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar lg:flex"}>
-                <Link href={"/"} className={"flex flex-col gap-0.5 px-4 pb-4 pt-5"}>
-                    <span className={"font-heading text-lg font-bold uppercase leading-none tracking-tight"}>
-                        Jobradar<span className={"text-primary"}>.</span>
-                    </span>
-                    <span className={"font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground"}>
-                        Market intelligence
-                    </span>
-                </Link>
+            {/* Desktop: the Notion-style rail, collapsible to icons. */}
+            <aside className={cn(
+                "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-sidebar transition-[width] duration-200 lg:flex",
+                collapsed ? "w-[66px]" : "w-60"
+            )}>
+                <div className={cn("flex items-start pb-4 pt-5", collapsed ? "justify-center px-0" : "justify-between px-4")}>
+                    {!collapsed && (
+                        <Link href={"/"} className={"flex flex-col gap-0.5"}>
+                            <span className={"font-heading text-lg font-bold uppercase leading-none tracking-tight"}>
+                                Jobradar<span className={"text-primary"}>.</span>
+                            </span>
+                            <span className={"font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground"}>
+                                Market intelligence
+                            </span>
+                        </Link>
+                    )}
+                    <button
+                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                        title={collapsed ? "Expand" : "Collapse"}
+                        onClick={toggleCollapsed}
+                        className={"mt-0.5 text-muted-foreground transition-colors hover:text-foreground"}
+                    >
+                        {collapsed ? <PanelLeftOpenIcon className={"size-4"} /> : <PanelLeftCloseIcon className={"size-4"} />}
+                    </button>
+                </div>
 
-                <nav className={"flex flex-1 flex-col gap-6 overflow-y-auto px-2.5"}>
+                <nav className={cn("flex flex-1 flex-col gap-6 overflow-y-auto pt-4", collapsed ? "px-2" : "px-2.5")}>
                     <div className={"flex flex-col gap-0.5"}>
-                        <p className={"px-2.5 pb-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"}>Workspace</p>
-                        {workspace.map((item) => <NavLink key={item.href} item={item} active={isActive(item.href)} />)}
+                        {!collapsed && <p className={"px-2.5 pb-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"}>Workspace</p>}
+                        {workspace.map((item) => <NavLink key={item.href} item={item} active={isActive(item.href)} collapsed={collapsed} />)}
                     </div>
-                    <div className={"flex flex-col gap-0.5"}>
-                        <p className={"px-2.5 pb-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"}>You</p>
-                        {you.map((item) => <NavLink key={item.href} item={item} active={isActive(item.href)} />)}
-                        <InstallApp />
+                    <div className={cn("flex flex-col gap-0.5", collapsed && "border-t border-border pt-2")}>
+                        {!collapsed && <p className={"px-2.5 pb-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70"}>You</p>}
+                        {you.map((item) => <NavLink key={item.href} item={item} active={isActive(item.href)} collapsed={collapsed} />)}
                     </div>
                 </nav>
 

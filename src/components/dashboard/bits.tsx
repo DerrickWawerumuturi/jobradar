@@ -106,6 +106,22 @@ export function TagChip({children, tone = "neutral"}: {
     )
 }
 
+/** App-icon treatment for UI glyphs: solid color, white icon, no grey. */
+export function IconBadge({icon: Icon, color, className}: {
+    icon: LucideIcon;
+    color: string;
+    className?: string;
+}) {
+    return (
+        <span
+            style={{backgroundColor: color}}
+            className={cn("grid size-5 shrink-0 place-items-center rounded-[6px] text-white shadow-[0_0_0_1px_oklch(1_0_0/10%)]", className)}
+        >
+            <Icon className={"size-3"} />
+        </span>
+    )
+}
+
 export function GridTh({icon: Icon, children, className}: {
     icon?: LucideIcon;
     children?: React.ReactNode;
@@ -155,7 +171,8 @@ export function ScoreChip({value, className}: { value: number | string | null; c
                 "inline-block rounded-[4px] px-2 py-0.5 font-mono text-xs font-bold tabular-nums",
                 score >= 85 && "bg-accent-lime text-accent-lime-ink",
                 score >= 70 && score < 85 && "bg-accent-lime/15 text-accent-lime",
-                score < 70 && "border border-border text-muted-foreground",
+                score >= 50 && score < 70 && "bg-chart-ramp-2/15 text-chart-ramp-2",
+                score < 50 && "bg-primary/15 text-primary",
                 className
             )}
         >
@@ -165,13 +182,13 @@ export function ScoreChip({value, className}: { value: number | string | null; c
 }
 
 const STATUS_STYLE: Record<ApplicationStatus, { chip: string; dot: string }> = {
-    saved: {chip: "bg-foreground/6 text-foreground/85", dot: "bg-muted-foreground"},
+    saved: {chip: "bg-[#3e63dd]/18 text-[#93b0ff]", dot: "bg-[#93b0ff]"},
     applied: {chip: "bg-success/12 text-success", dot: "bg-success"},
     screening: {chip: "bg-chart-ramp-2/12 text-chart-ramp-2", dot: "bg-chart-ramp-2"},
     interview: {chip: "bg-primary/12 text-primary", dot: "bg-primary"},
     offer: {chip: "bg-accent-lime font-bold text-accent-lime-ink", dot: "bg-accent-lime-ink"},
-    rejected: {chip: "bg-foreground/5 text-muted-foreground", dot: "bg-destructive/70"},
-    withdrawn: {chip: "bg-foreground/5 text-muted-foreground", dot: "bg-muted-foreground/60"}
+    rejected: {chip: "bg-destructive/15 text-destructive", dot: "bg-destructive"},
+    withdrawn: {chip: "bg-[#8e4ec6]/15 text-[#c395e8]", dot: "bg-[#c395e8]"}
 };
 
 /** Notion-style status chip — dot + label on a tinted pill. */
@@ -187,25 +204,23 @@ export function StatusChip({status, className}: { status: ApplicationStatus | nu
     )
 }
 
-const MONOGRAM_TONES = [
-    "bg-chart-ramp-1/20 text-chart-ramp-1",
-    "bg-chart-ramp-3/20 text-chart-ramp-3",
-    "bg-success/20 text-success",
-    "bg-accent-lime/20 text-accent-lime",
-    "bg-primary/20 text-primary"
+/* Solid app-icon palette, white letter on every color, stable per name. */
+const MONOGRAM_COLORS = [
+    "#f76b15", "#0091ff", "#30a46c", "#8e4ec6",
+    "#e54666", "#0ca678", "#3e63dd", "#ad5700"
 ];
 
-/** Attio-style identity mark: a tinted initial, colour stable per name. */
+/** Identity mark for anything without a real logo: solid color, white initial. */
 export function Monogram({label, className}: { label: string; className?: string }) {
-    const tone = MONOGRAM_TONES[
-        [...label].reduce((sum, char) => sum + char.charCodeAt(0), 0) % MONOGRAM_TONES.length
+    const color = MONOGRAM_COLORS[
+        [...label].reduce((sum, char) => sum + char.charCodeAt(0), 0) % MONOGRAM_COLORS.length
     ];
     return (
         <span
             aria-hidden
+            style={{backgroundColor: color}}
             className={cn(
-                "inline-grid size-5 shrink-0 place-items-center rounded-[5px] font-mono text-[10px] font-bold uppercase",
-                tone,
+                "inline-grid size-5 shrink-0 place-items-center rounded-[6px] font-mono text-[10px] font-bold uppercase text-white shadow-[0_0_0_1px_oklch(1_0_0/10%)]",
                 className
             )}
         >
@@ -232,13 +247,38 @@ export function EmptyScan({message}: { message: string }) {
     )
 }
 
+/** Segmented demand meter: ten flat cells, one solid color. The color is
+ * the have/gap signal — green when the skill is on the CV, orange when not. */
+export function DemandMeter({percent, tone, className}: {
+    percent: number;
+    tone: "have" | "gap";
+    className?: string;
+}) {
+    const filled = Math.max(1, Math.round(percent / 10));
+    return (
+        <span className={cn("flex w-24 gap-[3px]", className)}>
+            {Array.from({length: 10}, (_, cell) => (
+                <span
+                    key={cell}
+                    className={cn(
+                        "h-2 flex-1 rounded-[2px]",
+                        cell < filled
+                            ? tone === "have" ? "bg-success" : "bg-primary"
+                            : "bg-foreground/8"
+                    )}
+                />
+            ))}
+        </span>
+    )
+}
+
 /** ✓ you have it / △ the posting wants it and your CV doesn't show it. */
 export function SkillTag({skill, tone}: { skill: string; tone: "have" | "gap" }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 whitespace-nowrap rounded-[3px] border px-2 py-0.5 font-mono text-[10.5px]",
-                tone === "have" ? "border-success/35 text-success" : "border-primary/35 text-primary"
+                "inline-flex items-center gap-1 whitespace-nowrap rounded-[4px] px-2 py-0.5 font-mono text-[10.5px]",
+                tone === "have" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"
             )}
         >
             <span aria-hidden>{tone === "have" ? "✓" : "△"}</span>

@@ -13,7 +13,10 @@ import {useAnalysis} from "@/lib/analysis-store";
 import {PIPELINE, STATUS_LABEL, useApplications} from "@/lib/applications-store";
 import {byDemand, coveragePercent, significantGaps, toPercent} from "@/lib/market";
 import {toOpportunities} from "@/lib/dashboard-data";
-import {CELL_DIVIDE, EmptyScan, Panel, ScoreChip, SectionLabel, StatusChip, TABLE_WRAP, TD, Th} from "@/components/dashboard/bits";
+import {CELL_DIVIDE, DemandMeter, EmptyScan, Monogram, Panel, ScoreChip, SectionLabel, StatusChip, TABLE_WRAP, TD, Th} from "@/components/dashboard/bits";
+import StatusDisclosure from "@/components/dashboard/StatusDisclosure";
+import SkillBadge from "@/components/dashboard/SkillBadge";
+import CompanyLogo from "@/components/dashboard/CompanyLogo";
 
 const TOP_COUNT = 5;
 const STRONG_MATCH = 70;
@@ -103,6 +106,13 @@ export default function OverviewPage() {
         (analysis?.search?.providers ?? []).map((p) => p.provider).filter(Boolean)
     )] as string[];
 
+    const radarApps = [...apps]
+        .sort((a, b) => new Date(b.last_status_at).getTime() - new Date(a.last_status_at).getTime())
+        .slice(0, 3);
+    const radarOpps = rows
+        .filter((row) => row.jobId == null || !byJobId.has(row.jobId))
+        .slice(0, Math.max(2, TOP_COUNT + 1 - radarApps.length));
+
     const firstName = session?.user?.name?.split(" ")[0];
 
     if (!hydrated) return null;
@@ -165,43 +175,64 @@ export default function OverviewPage() {
 
                     <section className={"flex flex-col gap-3"}>
                         <div className={"flex items-baseline justify-between"}>
-                            <SectionLabel>Top opportunities</SectionLabel>
+                            <SectionLabel>On your radar</SectionLabel>
                             <Link href={"/dashboard/opportunities"} className={"font-mono text-[10px] uppercase tracking-[0.1em] text-primary hover:underline"}>
-                                View all {rows.length} →
+                                All {rows.length} jobs →
                             </Link>
                         </div>
                         <div className={TABLE_WRAP}>
                             <table className={"w-full border-collapse"}>
                                 <thead>
                                     <tr>
-                                        <Th icon={TypeIcon} className={"w-[54%]"}>Role</Th>
-                                        <Th icon={GaugeIcon} className={"w-[20%]"}>Match</Th>
-                                        <Th icon={CircleDashedIcon} className={"w-[26%]"}>Status</Th>
+                                        <Th icon={TypeIcon} className={"w-[52%]"}>Role</Th>
+                                        <Th icon={GaugeIcon} className={"w-[18%]"}>Match</Th>
+                                        <Th icon={CircleDashedIcon} className={"w-[30%]"}>Status</Th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {rows.slice(0, TOP_COUNT).map((row) => {
-                                        const app = row.jobId != null ? byJobId.get(row.jobId) : undefined;
-                                        return (
-                                            <tr
-                                                key={row.key}
-                                                tabIndex={0}
-                                                onClick={() => router.push(`/dashboard/opportunities?sel=${encodeURIComponent(row.key)}`)}
-                                                onKeyDown={(event) => event.key === "Enter" &&
-                                                    router.push(`/dashboard/opportunities?sel=${encodeURIComponent(row.key)}`)}
-                                                className={"cursor-pointer transition-colors hover:bg-foreground/3"}
-                                            >
-                                                <td className={cn(TD, CELL_DIVIDE)}>
-                                                    <span className={"font-medium"}>{row.role}</span>
-                                                    <span className={"mt-0.5 block font-mono text-[11px] text-muted-foreground"}>
-                                                        {[row.company, row.location].filter(Boolean).join(" · ")}
+                                    {radarApps.map((app) => (
+                                        <tr key={`app-${app.id}`} className={"transition-colors hover:bg-foreground/3"}>
+                                            <td className={cn(TD, CELL_DIVIDE)}>
+                                                <span className={"flex items-center gap-2.5"}>
+                                                    <CompanyLogo company={app.company ?? app.title} url={app.url} />
+                                                    <span className={"min-w-0"}>
+                                                        <span className={"block truncate font-medium"}>{app.title ?? "Untitled role"}</span>
+                                                        <span className={"block truncate font-mono text-[11px] text-muted-foreground"}>
+                                                            {app.company ?? "your application"}
+                                                        </span>
                                                     </span>
-                                                </td>
-                                                <td className={cn(TD, CELL_DIVIDE)}><ScoreChip value={row.match} /></td>
-                                                <td className={cn(TD, CELL_DIVIDE)}><StatusChip status={app?.status ?? null} /></td>
-                                            </tr>
-                                        )
-                                    })}
+                                                </span>
+                                            </td>
+                                            <td className={cn(TD, CELL_DIVIDE)}><ScoreChip value={app.match_score} /></td>
+                                            <td className={cn(TD, CELL_DIVIDE)}><StatusDisclosure app={app} /></td>
+                                        </tr>
+                                    ))}
+                                    {radarOpps.map((row) => (
+                                        <tr
+                                            key={row.key}
+                                            tabIndex={0}
+                                            onClick={() => router.push(`/dashboard/opportunities?sel=${encodeURIComponent(row.key)}`)}
+                                            onKeyDown={(event) => event.key === "Enter" &&
+                                                router.push(`/dashboard/opportunities?sel=${encodeURIComponent(row.key)}`)}
+                                            className={"cursor-pointer transition-colors hover:bg-foreground/3"}
+                                        >
+                                            <td className={cn(TD, CELL_DIVIDE)}>
+                                                <span className={"flex items-center gap-2.5"}>
+                                                    <CompanyLogo company={row.company ?? row.role} url={row.url} />
+                                                    <span className={"min-w-0"}>
+                                                        <span className={"block truncate font-medium"}>{row.role}</span>
+                                                        <span className={"block truncate font-mono text-[11px] text-muted-foreground"}>
+                                                            {[row.company, row.location].filter(Boolean).join(" · ")}
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </td>
+                                            <td className={cn(TD, CELL_DIVIDE)}><ScoreChip value={row.match} /></td>
+                                            <td className={cn(TD, CELL_DIVIDE)}>
+                                                <span className={"font-mono text-[10px] uppercase tracking-[0.08em] text-accent-lime"}>new match →</span>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -219,15 +250,16 @@ export default function OverviewPage() {
                                 const percent = toPercent(gap.frequency);
                                 return (
                                     <div key={gap.skill}>
-                                        <div className={"mb-1.5 flex items-baseline justify-between"}>
-                                            <span className={"font-mono text-xs font-medium"}>{gap.skill}</span>
-                                            <span className={"font-mono text-[10.5px] tabular-nums text-muted-foreground"}>
+                                        <div className={"mb-1.5 flex items-center justify-between gap-2"}>
+                                            <span className={"flex min-w-0 items-center gap-2"}>
+                                                <SkillBadge skill={gap.skill} tone={"gap"} className={"size-5"} />
+                                                <span className={"truncate font-mono text-xs font-medium"}>{gap.skill}</span>
+                                            </span>
+                                            <span className={"shrink-0 font-mono text-[10.5px] tabular-nums text-muted-foreground"}>
                                                 {Math.round(percent)}% of jobs
                                             </span>
                                         </div>
-                                        <div className={"h-1.5 overflow-hidden rounded-full bg-foreground/8"}>
-                                            <div className={"h-full rounded-full bg-primary"} style={{width: `${percent}%`}} />
-                                        </div>
+                                        <DemandMeter percent={percent} tone={"gap"} />
                                     </div>
                                 )
                             }) : (
@@ -254,8 +286,8 @@ export default function OverviewPage() {
                                     {PIPELINE.map((status) => (
                                         <div key={status} className={"px-3 py-3 text-center"}>
                                             <p className={"font-mono text-lg font-bold tabular-nums"}><AnimatedCounter value={counts[status]} /></p>
-                                            <p className={"mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"}>
-                                                {STATUS_LABEL[status]}
+                                            <p className={"mt-0.5 flex items-center justify-center gap-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"}>
+                                                <StatusChip status={status} className={"px-0 py-0 !bg-transparent"} />
                                             </p>
                                         </div>
                                     ))}

@@ -11,26 +11,32 @@ import {useApplications} from "@/lib/applications-store";
 import {ScoreChip, SectionLabel, SkillTag, StatusChip} from "@/components/dashboard/bits";
 
 const SUB_SCORES = [
-    {key: "title", label: "Role fit"},
-    {key: "skills", label: "Skills"},
-    {key: "experience", label: "Experience"},
-    {key: "location", label: "Location"}
+    {key: "title", label: "Role fit", color: "#c7ef34"},
+    {key: "skills", label: "Skills", color: "#30a46c"},
+    {key: "experience", label: "Experience", color: "#ffb224"},
+    {key: "location", label: "Location", color: "#5b7fff"}
 ] as const;
 
 const ADVANTAGE_LIMIT = 8;
 const GAP_LIMIT = 8;
 
-function Meter({label, value, inert}: { label: string; value: number; inert: boolean }) {
+function Meter({label, value, inert, color}: { label: string; value: number; inert: boolean; color: string }) {
     const percent = toPercent(value);
     return (
         <div className={"flex items-center gap-3"}>
-            <span className={cn("w-24 shrink-0 text-xs", inert ? "text-muted-foreground/60" : "text-muted-foreground")}>
+            <span className={cn("flex w-24 shrink-0 items-center gap-1.5 text-xs", inert ? "text-muted-foreground/60" : "text-muted-foreground")}>
+                <span aria-hidden className={"size-1.5 rounded-full"} style={{backgroundColor: inert ? "oklch(0.5 0 0)" : color}} />
                 {label}
             </span>
             <div className={"h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/8"}>
                 <div
-                    className={cn("h-full rounded-full", inert ? "bg-muted-foreground/30" : "bg-success")}
-                    style={{width: `${percent}%`}}
+                    className={"h-full rounded-full"}
+                    style={{
+                        width: `${percent}%`,
+                        background: inert
+                            ? "oklch(0.45 0 0 / 60%)"
+                            : `linear-gradient(90deg, ${color}99, ${color})`
+                    }}
                 />
             </div>
             <span className={"w-10 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground"}>
@@ -81,8 +87,8 @@ export function BreakdownContent({row, inertScores, onClose}: BreakdownProps) {
                 </div>
 
                 <div className={"flex flex-col gap-2.5 border-t border-border pt-4"}>
-                    {SUB_SCORES.map(({key, label}) => (
-                        <Meter key={key} label={label} value={row.scores[key]} inert={inertScores.has(key)} />
+                    {SUB_SCORES.map(({key, label, color}) => (
+                        <Meter key={key} label={label} value={row.scores[key]} inert={inertScores.has(key)} color={color} />
                     ))}
                     {inertScores.size > 0 && (
                         <p className={"text-[11px] leading-relaxed text-muted-foreground/80"}>

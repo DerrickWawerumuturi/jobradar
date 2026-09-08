@@ -5,7 +5,7 @@ import {useSession} from "next-auth/react";
 import {toast} from "sonner";
 
 import {ApplicationRow, ApplicationStatus} from "@/types/jobradar";
-import {CreateManualApplication, ListApplications, ManualApplicationPayload, ToggleBookmark, TransitionApplication} from "@/lib/api";
+import {ApiError, CreateManualApplication, DeleteApplication, ListApplications, ManualApplicationPayload, ToggleBookmark, TransitionApplication} from "@/lib/api";
 import {useCv} from "@/lib/cv-store";
 
 export const PIPELINE: ApplicationStatus[] = ["saved", "applied", "screening", "interview", "offer"];
@@ -45,8 +45,12 @@ interface ApplicationsContextValue {
     markApplied: (job: SaveTarget) => void;
     /** An application made outside JobRadar, entered by hand. */
     addManual: (entry: ManualApplicationPayload) => void;
+    /** Deletes a terminal row (saved, withdrawn, rejected) with its history. */
+    remove: (app: ApplicationRow) => void;
     transition: (id: number, to: Exclude<ApplicationStatus, "saved">) => void;
     refresh: () => Promise<void>;
+    /** The token was refused: this browser's session predates an app update. */
+    staleSession: boolean;
 }
 
 const ApplicationsContext = createContext<ApplicationsContextValue | null>(null);
@@ -64,13 +68,20 @@ export function ApplicationsProvider({children}: { children: React.ReactNode }) 
     const [apps, setApps] = useState<ApplicationRow[]>([]);
     const [state, setState] = useState<ApplicationsState>("loading");
     const [pending, setPending] = useState<Set<number>>(new Set());
+    const [staleSession, setStaleSession] = useState(false);
 
     const refresh = useCallback(async () => {
         try {
             setApps(await ListApplications() ?? []);
             setState("ready");
+            setStaleSession(false);
         } catch (err) {
             console.error("Loading applications failed:", err);
+            // Only the backend's stale-identity guard warrants the re-auth
+            // banner; other 401s (server mid-restart, clock skew) must not
+            // tell users to sign out.
+            if (err instanceof ApiError && err.status === 401
+                && err.message.includes("outdated app session")) setStaleSession(true);
             setState("error");
         }
     }, []);
@@ -209,9 +220,16 @@ export function ApplicationsProvider({children}: { children: React.ReactNode }) 
         void sync(() => CreateManualApplication({...entry, cv_snapshot: cv}));
     }, [cv, sync]);
 
+    const remove = useCallback((app: ApplicationRow) => {
+        if (app.id < 0) return;
+        setApps((prev) => prev.filter((row) => row.id !== app.id));
+        toast(`Deleted ${app.title ?? "application"}`);
+        void sync(() => DeleteApplication(app.id));
+    }, [sync]);
+
     const value = useMemo<ApplicationsContextValue>(
-        () => ({apps, state, byJobId, counts, pending, toggleSave, saveMany, markApplied, addManual, transition, refresh}),
-        [apps, state, byJobId, counts, pending, toggleSave, saveMany, markApplied, addManual, transition, refresh]
+        () => ({apps, state, byJobId, counts, pending, toggleSave, saveMany, markApplied, addManual, remove, transition, refresh, staleSession}),
+        [apps, state, byJobId, counts, pending, toggleSave, saveMany, markApplied, addManual, remove, transition, refresh, staleSession]
     );
 
     return <ApplicationsContext.Provider value={value}>{children}</ApplicationsContext.Provider>;
