@@ -218,6 +218,24 @@ async def transition_application(
     return {"status": body.to_status}
 
 
+@app.delete("/dashboard/applications/{application_id}")
+async def delete_application(application_id: int, user=Depends(current_user)):
+    await run_in_threadpool(application_service.remove, user, application_id)
+    return {"deleted": application_id}
+
+
+@app.delete("/account/data")
+async def delete_my_data(user=Depends(current_user)):
+    await run_in_threadpool(user_ingestion.delete_data, user)
+    return {"deleted": True}
+
+
+@app.delete("/account")
+async def delete_account(user=Depends(current_user)):
+    deleted = await run_in_threadpool(user_ingestion.delete_account, user)
+    return {"deleted": deleted}
+
+
 @app.get("/dashboard/applications/{application_id}/history")
 async def application_history(application_id: int, user=Depends(current_user)):
     return await run_in_threadpool(application_service.history, user, application_id)

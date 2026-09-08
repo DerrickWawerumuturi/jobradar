@@ -180,6 +180,21 @@ class ApplicationIngestionService:
             delete(conn, user_id, existing["id"])
             return {"bookmarked": False, "application_id": None}
 
+    def remove(self, payload, application_id) -> None:
+        # Terminal rows (saved, withdrawn, rejected) may be deleted along with
+        # their history. Active ones must be withdrawn first, so the pipeline
+        # never loses a live application by accident.
+        with connection() as conn:
+            user_id = _getuser(conn, payload)
+            status_now = current_status(conn, user_id, application_id)
+            if status_now is None:
+                raise ApplicationNotFound(f"application {application_id}")
+            if status_now not in ("saved", "withdrawn", "rejected"):
+                raise BookmarkNotRemovable(
+                    f"application is {status_now}: withdraw it first, then delete"
+                )
+            delete(conn, user_id, application_id)
+
     def history(self, payload, application_id) -> list[dict]:
         with connection() as conn:
             user_id = _getuser(conn, payload)

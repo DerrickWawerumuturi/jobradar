@@ -276,4 +276,27 @@ class CVIngestionService:
         with connection() as conn:
             return user_repository.get_analysis(conn, payload["sub"])
 
+    def delete_data(self, payload) -> None:
+        # Wipes everything stored for the user but keeps the account itself:
+        # cv, stored analysis, and all tracked applications (events cascade).
+        with connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "select id from users where sub = %s", (payload["sub"],)
+                )
+                row = cur.fetchone()
+                if row is None:
+                    return
+                user_id = row["id"]
+                cur.execute("delete from cvs where user_id = %s", (user_id,))
+                cur.execute("delete from analyses where user_id = %s", (user_id,))
+                cur.execute("delete from application where user_id = %s", (user_id,))
+
+    def delete_account(self, payload) -> bool:
+        # The users row cascades to cvs, analyses and applications.
+        with connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("delete from users where sub = %s", (payload["sub"],))
+                return cur.rowcount > 0
+
 user_ingestion = CVIngestionService()
