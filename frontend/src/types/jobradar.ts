@@ -17,6 +17,7 @@ export interface SkillStat {
     frequency: number;
 }
 
+
 export interface SkillCoverage {
     covered: number;
     /** Length of `top_skills` — the market skillset coverage is measured against. */
