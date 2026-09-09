@@ -1,0 +1,18 @@
+export const SKILL_SUGGESTIONS = [
+    "JavaScript", "TypeScript", "Python", "Java", "C#", "C++", "Go", "Rust",
+    "PHP", "Ruby", "Swift", "Kotlin", "Dart", "SQL", "HTML", "CSS",
+    "React", "Next.js", "Vue", "Nuxt", "Angular", "Svelte", "Redux",
+    "Tailwind CSS", "Bootstrap", "Sass", "React Native", "Flutter",
+    "Node.js", "Express", "NestJS", "Django", "Flask", "FastAPI",
+    "Spring Boot", "Laravel", "Rails", ".NET", "GraphQL", "REST APIs",
+    "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Elasticsearch",
+    "Firebase", "Supabase", "Prisma",
+    "AWS", "Azure", "Google Cloud", "Docker", "Kubernetes", "Terraform",
+    "CI/CD", "GitHub Actions", "Jenkins", "Linux", "Nginx", "Git",
+    "Machine Learning", "Deep Learning", "NLP", "Computer Vision",
+    "TensorFlow", "PyTorch", "scikit-learn", "Pandas", "NumPy",
+    "Data Analysis", "Data Engineering", "Power BI", "Tableau", "Excel",
+    "Jest", "Cypress", "Playwright", "Testing", "Agile", "Scrum",
+    "Figma", "UI/UX Design", "Product Management", "Project Management",
+    "Communication", "Leadership", "Problem Solving", "Teamwork",
+]
