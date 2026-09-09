@@ -3,6 +3,11 @@ name: deploy backend
 on:
   push:
     branches: [main]
+    # Monorepo: the frontend deploys itself via Vercel. Rebuilding a 1 GB
+    # image and restarting the container app for a CSS change is pure waste.
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 # One deploy at a time; a newer push supersedes a queued one.
@@ -24,7 +29,7 @@ jobs:
         run: |
           az acr login --name jobradarregistry
           IMAGE=jobradarregistry.azurecr.io/jobradar:${GITHUB_SHA::8}
-          docker build --platform linux/amd64 -t "$IMAGE" .
+          docker build --platform linux/amd64 -t "$IMAGE" ./backend
           docker push "$IMAGE"
 
       - name: Update container app
