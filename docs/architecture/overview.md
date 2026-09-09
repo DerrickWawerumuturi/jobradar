@@ -3,14 +3,15 @@
 JobRadar answers one question: *where does this CV stand in the current job
 market, and what should be learned next?*
 
-It is two repositories:
+It is one repository, two deployables:
 
-| Part | Repo | Role |
-|---|---|---|
-| API | this repo | Produces the intelligence |
-| Dashboard | `jobradar` (Next.js) | Presents the intelligence |
+| Part | Path | Deploys to | Role |
+|---|---|---|---|
+| API | `backend/` | Azure Container Apps | Produces the intelligence |
+| Dashboard | `frontend/` | Vercel | Presents the intelligence |
 
-The split is deliberate and load-bearing: **all analysis happens server-side.**
+They share a repo but never a process. The boundary is deliberate and
+load-bearing: **all analysis happens server-side.**
 The frontend may reshape numbers for display (`0.5555` → `55.6%`) but never
 recomputes similarity, frequency or gaps.
 
